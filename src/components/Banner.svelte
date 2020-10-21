@@ -1,5 +1,6 @@
 <script>
   import * as security from './security.mjs'
+  // import {auth0Promise, logout} from './security.mjs'
   const {auth0Promise, logout} = security
   const userPromise = auth0Promise.then(auth0 => auth0.getUser())
 </script>

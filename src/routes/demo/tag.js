@@ -1,8 +1,56 @@
+/*
+Terrance - Tourism NZ
+
+He makes Auckland, and Wellington and Christchurch tags, Auckland/Wellington/Christchurch-2020 only tag.
+
+Amy is the Auckland RTO admin, she has been given Auckland assigner access, and Auckland and Wellington view access.
+
+Wendy, Wellingtons Admin
+
+Chris, Chch admin
+
+Quentyn, QueensTown admin
+
+Contreese, Contractor.... works for Auckland, QueensTown.
+
+Amy assigns him Auckland.
+Quentyn assigns him QueensTown.
+
+
+Amy, Quentyn - can make a Auckland / QueensTown tag, without Terrance needing to be involved.
+
+Amy, Auckland/QueensTown.... 
+
+
+Parent, Parent, Parent
+  |    \   |   /
+Child    Child
+
+
+Node = [Collection | Tag | Person]
+
+Nodes, list of parents, but in practice only Tags, and Person does.
+Nodes, ALSO have a list of assignable, but in practice, only users so.
+Nodes, restrictions .... {population:{hourly:{read:{region:1}}}} // the filter!
+
+Person has a ID = "auth0|52434xfsa345fkfdjlkdsf"
+Person has email
+Person has nickname
+Person has picture
+
+Tags have names
+
+Collection -> Tag -> Tag -> Tag -> Person
+
+*/
+
+
 const _addAssignable = (node, assigner) => assigner.assignable = [...new Set([...assigner.assignable, node._id])]
 const _addChild = (parent, child) => child.parents = [...new Set([...child.parents, parent._id])]
 
 const node_database = []
 let currentRecord = 0
+
 const addToDb = (record) => {
   record._id = currentRecord++
   record.parents = record.parents || [] // no parents? 
@@ -19,6 +67,7 @@ const createUser = (name) => addToDb({type:"user", name})
 // create collection
 // You are automatically given assign rights, and default view for any collection you create.
 const createCollection = (db,collection,asUser) => {
+  // TODO: are you even aloud to make a database you scrub?
   // normally there is a check to throw your toys out if it already exists.....
   let _collection = addToDb({type:"collection", db, collection}) // tables are not big things
   _addChild(_collection,asUser) // creators can see their creations
@@ -49,6 +98,7 @@ const assign = (node, assigner, asUser) => {
 
 // You can remove assign rights for a tag, to a node, if you have assign rights for that tag yourself.
 const removeAssignRight = (node, assigner, asUser) => {
+  // TODO can't remove last assigner - must make find all assignees.
   if (!asUser.assignable.includes(node._id)) {
     throw "you don't have assign rights to the node you are trying to remove an assigner from"
   }
@@ -122,6 +172,13 @@ const handleKeyCollision = (o1,o2) => {
   }
 }
 
+/*
+Tag = Restriction for Auckland in hourly, and Auckland in monthly.
+                        filter ---v
+collection -> filter -> filter -> user...
+                        ^
+collection2 -> filter--/
+*/
 const matchFor = (node,db,collection,permission) => {
   console.log("\t", "matchFor", node, db, collection, permission)
   let _permission = node?.restrictions?.collection?.[permission]
