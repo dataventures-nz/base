@@ -1,31 +1,7 @@
 /*
-Terrance - Tourism NZ
-
-He makes Auckland, and Wellington and Christchurch tags, Auckland/Wellington/Christchurch-2020 only tag.
-
-Amy is the Auckland RTO admin, she has been given Auckland assigner access, and Auckland and Wellington view access.
-
-Wendy, Wellingtons Admin
-
-Chris, Chch admin
-
-Quentyn, QueensTown admin
-
-Contreese, Contractor.... works for Auckland, QueensTown.
-
-Amy assigns him Auckland.
-Quentyn assigns him QueensTown.
-
-
-Amy, Quentyn - can make a Auckland / QueensTown tag, without Terrance needing to be involved.
-
-Amy, Auckland/QueensTown.... 
-
-
 Parent, Parent, Parent
   |    \   |   /
 Child    Child
-
 
 Node = [Collection | Tag | Person]
 
@@ -43,7 +19,6 @@ Tags have names
 Collection -> Tag -> Tag -> Tag -> Person
 
 */
-
 
 const _addAssignable = (node, assigner) => assigner.assignable = [...new Set([...assigner.assignable, node._id])]
 const _addChild = (parent, child) => child.parents = [...new Set([...child.parents, parent._id])]
@@ -78,7 +53,7 @@ const createCollection = (db,collection,asUser) => {
 // You can only create a tag, for a node which you have assign rights to, and that becomes it's parent.
 // You are automatically given assign rights for any tag you create.
 const createTag = (name, parent, asUser) => {
-  console.log("","creating tag", asUser)
+  console.log("","creating tag", name, "from parent", parent, "asUser", asUser)
   if (!asUser.assignable.includes(parent._id)) {
     throw "you don't have assign rights to the node you are trying to add the tag to"
   }
@@ -121,11 +96,15 @@ const removeChildFromParent = (child, parent, asUser) => {
   child.parents = child.parents.filter(x => x != node._id) // assigners can throw other assigners out, they can even throw themselves out.
 }
 
+const isAssignable = (user, node) => user.assignable.includes(node._id)
+const isParent = (parent, child) => child.parents.includes(parent._id)
 const setRestriction = (node, db, collection, permission, restriction, asUser) => {
-  // we need to be assignable for ALL parents for that db, and collection
-  // is there ANY parents of the node, which has a path to the db/collection, which does we are NOT assignable.
-  const nope = node.parents.some(parent => !asUser.assignable.includes(parent._id) && matchFor(node,db,collection,permission))
-  if (nope) {
+  const nope1 = !matchFor(node,db,collection,permission)
+  if (nope1) {
+    throw "there is no path to collection from here, so, you can't edit rights for that path"
+  }
+  const nope2 = node.parents.map(parent => node_database[parent]).some(parent => !asUser.assignable.includes(parent._id) && matchFor(parent,db,collection,permission))
+  if (nope2) {
     throw 'you do not have sufficiant permissions to change this, you must have assigner rights to all parents, go make a child from here'
   } // weirdly enough, it is ok for you not to have assigner rights to THIS node.
   node.restrictions[db] = node.restrictions[db] || {}
@@ -164,7 +143,7 @@ const become = (testAccount, user) => {
   MongoDB doesn't care which one it is, this is for users.
 */
 const handleKeyCollision = (o1,o2) => {
-  const collision = o1.keys().some(k=> o2.keys().includes(k)) // is any key in both objects
+  const collision = Object.keys(o1).some(k=> Object.keys(o2).includes(k)) // is any key in both objects
   if (collision) {
     return {$and:[o1,o2]} // can't merge
   } else {
@@ -172,16 +151,8 @@ const handleKeyCollision = (o1,o2) => {
   }
 }
 
-/*
-Tag = Restriction for Auckland in hourly, and Auckland in monthly.
-                        filter ---v
-collection -> filter -> filter -> user...
-                        ^
-collection2 -> filter--/
-*/
 const matchFor = (node,db,collection,permission) => {
-  console.log("\t", "matchFor", node, db, collection, permission)
-  let _permission = node?.restrictions?.collection?.[permission]
+  let _permission = node?.restrictions?.[db]?.[collection]?.[permission]
   // lets deal with the case where this is the wrong collection.
   if (node.type=='collection'){
     if (node.db != db || node.collection != collection) return undefined // no path to collection, no data from this path.
@@ -219,7 +190,7 @@ console.log("and the play begins")
 console.log()
 
 console.log("blair creates a table, population/hourly")
-const hourly = createCollection("population","hourly",blair)
+const hourly = createCollection("population","hourly", blair)
 
 console.log("sarah creates a table, population/monthly")
 const monthly = createCollection("population","monthly",sarah)
@@ -279,9 +250,92 @@ console.log("ACT II - Whats this? A customer?")
 console.log("let us welcome our new cast members")
 console.log()
 
-console.log("creating user amy, she admins for another org")
+console.log("amy, she admins for another org (azOrg), who tend to use stuff on a regional and time basis")
 const amy = createUser("amy") // admin for another org
 
-console.log("creating user zach, he works for amy's org")
+console.log("zach, he works for amy's org")
 const zach = createUser("zach") // user for another org
 
+console.log("wendy is from another org, getting stuff from Amy's org, she is only interested in wellington")
+const wendy = createUser("wendy") // wendy wellington
+
+console.log("arthur is from another org, getting stuff from Amy's org, she is only interested in auckland")
+const arthur = createUser("arthur") // arthur auckland
+
+console.log("criss is from another org, getting stuff from Amy's org, he is only interested in christchurch")
+const criss = createUser("criss") // criss christchurch
+
+console.log("cordy is a contractor, they work for different orgs, on and off, sometimes more than one")
+const cordy = createUser("cordy") // cordy the contractor
+
+console.log("lets start our story.... blair sets up stuff for amy to run")
+console.log("they get hourly for this year")
+const azOrg = createTag("azOrg", hourly, blair)
+
+console.log("he sets a restriction on it")
+setRestriction(azOrg, "population", "hourly", "read", {time_utc:{$gt:"2020-01-01T00:00:00"}}, blair)
+
+console.log("they get monthly for the last 2 years- but blair shouldn't be able to since he isn't assigner to monthly.")
+try {
+  addChildToParent(azOrg,monthly,blair)
+} catch (ex) {
+  console.log("and he can't because ", ex)
+}
+
+console.log("Sarah steps in and fixes that by giving blair assigner to monthly")
+assign(monthly,blair,sarah)
+
+console.log("Blair then finishes setup")
+addChildToParent(azOrg,monthly,blair)
+setRestriction(azOrg, "population", "monthly", "read", {time_utc:{$gt:"2019-01-01T00:00:00"}}, blair)
+
+console.log("Sarah points out it should be time_nzst, and goes to fix it")
+setRestriction(azOrg, "population", "monthly", "read", {time_nzst:{$gt:"2019-01-01T00:00:00"}}, sarah)
+
+console.log("Sarah tries to fix hourly, but, she doesn't have assigner access, so she shouldn't be able to edit that")
+try {
+  setRestriction(azOrg, "population", "hourly", "read", {time_nzst:{$gt:"2020-01-01T00:00:00"}}, sarah)
+} catch (ex) {
+  console.log("and she can't because ", ex)
+}
+
+console.log("Blair adds her to hourly as he should have a long time ago")
+assign(hourly,sarah,blair)
+
+console.log("Since she is already on the screen, and it is ready to go, she presses apply again.....")
+setRestriction(azOrg, "population", "hourly", "read", {time_nzst:{$gt:"2020-01-01T00:00:00"}}, sarah)
+
+console.log("blair hands over azOrg to amy")
+assign(azOrg,amy,blair)
+
+console.log("who gives zach acess")
+addChildToParent(zach,azOrg,amy)
+
+console.log("who run a query")
+
+console.log("now zach can see both hourly", matchFor(zach,"population","hourly","read"))
+console.log("and monthly", matchFor(zach,"population","monthly","read"))
+
+
+console.log("wendy wellington and authur auckland come on board, forcing the creation of more tags, amy gets to work")
+const wellington = createTag("Wellington", azOrg, amy)
+const auckland = createTag("Auckland", azOrg, amy)
+setRestriction(auckland, "population", "hourly", "read", {region:1}, amy)
+setRestriction(auckland, "population", "monthly", "read", {region:1}, amy)
+setRestriction(wellington, "population", "hourly", "read", {region:4}, amy)
+setRestriction(wellington, "population", "monthly", "read", {region:4}, amy)
+
+addChildToParent(arthur,auckland,amy)
+addChildToParent(wendy,wellington,amy)
+
+console.log("now arthur can see both hourly", matchFor(arthur,"population","hourly","read"))
+console.log("and monthly", matchFor(arthur,"population","monthly","read"))
+
+console.log("and wendy can see both hourly", matchFor(wendy,"population","hourly","read"))
+console.log("and monthly", matchFor(wendy,"population","monthly","read"))
+
+console.log("cordy comes on board, and amy sets to work giving her both wellington and auckland permissions")
+addChildToParent(cordy,auckland,amy)
+addChildToParent(cordy,wellington,amy)
+console.log("and cordy can see both hourly", matchFor(cordy,"population","hourly","read"))
+console.log("and monthly", matchFor(cordy,"population","monthly","read"))
