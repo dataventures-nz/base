@@ -1,6 +1,5 @@
 <script>
-  import * as security from '$components/security.mjs'
-  const {userPromise, tokenPromise} = security
+  import {userPromise, tokenPromise} from '$components/security.mjs'
 </script>
 {#await userPromise}
 Loading user
