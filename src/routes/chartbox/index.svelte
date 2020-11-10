@@ -7,13 +7,13 @@ import {tokenPromise} from '$components/security.mjs'
 import whitelist from "./whitelist_public.json"
 import default_layerlist from "./field_to_layer.json"
 import Dropdown from './Dropdown.svelte';
-import Datepicker from '$components/datepicker/Datepicker.svelte';
+import DatePicker from '$components/datepicker/DatePicker.svelte';
 import Clear from './Clear.svelte';
 
 let datefields = []
 let datefield
 let table = {}
-let startDate
+let startDate = new Date(2000,1,10)
 let endDate
 let dateformat ="#YYYY-MM-DD 00:00:00#"
 let layerlist = default_layerlist
@@ -97,8 +97,13 @@ const cleardateselection = function(){
   enddatedata = null
 }
 
-$: startDate && startDate.on("data",()=>startdatedata=startDate.getDateString(dateformat))
-$: endDate && endDate.on("data",()=>enddatedata = endDate.getDateString(dateformat))
+
+let adate = new Date(2000,0,10)
+const onDateChange = (e)=>console.log("changedate ",(e.detail))
+$: if(adate){console.log("a date ",adate)}
+
+// $: startDate && startDate.on("data",()=>startdatedata=startDate.getDateString(dateformat))
+// $: endDate && endDate.on("data",()=>enddatedata = endDate.getDateString(dateformat))
 $: dbfield = layerlist[currentlayer].db.field
 $: selection = layerlist[currentlayer].map.selection
 $: match = make_match(selection,dbfield,datefield,startdatedata,enddatedata)
@@ -162,8 +167,10 @@ $: match = make_match(selection,dbfield,datefield,startdatedata,enddatedata)
                   <option class = "option" value={field}> {field} </option>
                 {/each}
               </select>
-              <Datepicker start={mindate} end={maxdate} format={formatTime}/>
-              {formatTime(mindate)}
+              <div>
+                <DatePicker bind:selected = {adate} on:datechange={onDateChange} isAllowed={()=>true}/>
+                <!-- <DatePicker/> -->
+              </div>
             </div>
           </div>
         </div>
