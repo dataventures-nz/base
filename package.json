@@ -7,10 +7,17 @@
 	},
 	"devDependencies": {
 		"@auth0/auth0-spa-js": "^1.13.1",
+		"@snowpack/plugin-build-script": "^2.0.11",
 		"@sveltejs/adapter-node": "*",
 		"@sveltejs/kit": "*",
 		"@sveltejs/snowpack-config": "*",
-		"svelte": "*"
+		"cssnano": "^4.1.10",
+		"postcss": "^8.1.6",
+		"postcss-cli": "^8.2.0",
+		"postcss-load-config": "^3.0.0",
+		"svelte": "*",
+		"svelte-preprocess": "^4.5.2",
+		"tailwindcss": "^2.0.0-alpha.9"
 	},
 	"dependencies": {
 		"d3-dsv": "^2.0.0",
