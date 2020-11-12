@@ -41,6 +41,8 @@
     left: 0px;
     border: 1px solid green;
     display: inline-block;
+    z-index: 999;
+    background-color: whitesmoke;
   }
 
   .month-name {

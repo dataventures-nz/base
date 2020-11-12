@@ -10,13 +10,9 @@ const get_headers =  async () =>({
     'Content-Type': 'application/json'
 })
 
-const onServer = (typeof window == 'undefined')
-
-console.log("Api says we are onServer?", onServer)
-
 export const db_url = (dbName, collectionName) => `${serviceUrl}/api/${dbName}/${collectionName}` 
-export const fetch_csv = async (method,url,body) => onServer?[]:await csv(url, {method, headers: {Accept:"text/csv", ...await get_headers()}, body: body?JSON.stringify(body):undefined})
-export const fetch_json = async(method, url, body) => onServer?[]:await fetch(url, {method, headers: await get_headers(), body: body?JSON.stringify(body):undefined}).then(response => response.json())
+export const fetch_csv = async (method,url,body) => await csv(url, {method, headers: {Accept:"text/csv", ...await get_headers()}, body: body?JSON.stringify(body):undefined})
+export const fetch_json = async(method, url, body) => await fetch(url, {method, headers: await get_headers(), body: body?JSON.stringify(body):undefined}).then(response => response.json())
 
 export const api_url = (service) => `${serviceUrl}/api/${service}`
 export const query = (dbName, collectionName, q) => fetch_csv('POST', db_url(dbName,collectionName), q)

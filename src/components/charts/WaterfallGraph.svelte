@@ -1,7 +1,6 @@
 <script>
   import * as d3 from "d3";
   export let groups
-  export let chartheight = 500
   export let options
 
   const defaultoptions={
@@ -9,10 +8,11 @@
     width:1600,
     color:"black"
   }
-  options = {...defaultoptions,...options}
 
-  let yscale = d3.scaleLinear().domain(options.ydomain).range([200,0])
-  let xscale = d3.scaleLinear().domain(options.xdomain).range([0,500])
+   $: options = {...defaultoptions,...options}
+
+  let yscale = d3.scaleLinear().domain(options.ydomain).range([options.height/2,0])
+  let xscale = d3.scaleLinear().domain(options.xdomain).range([0,options.width/2])
 
   let line = d3.line()
     .x((d)=>xscale(options.xaccessor(d)))
@@ -47,11 +47,13 @@ const drag = (e)=>{
 
 const dragend = (e)=>{mousedown = false}
 
-let dx
-let dy
+let dx,dy,y1
 
 $: dx = mousep.dx()/lines.length
 $: dy = mousep.dy()/lines.length
+$: y1 = yscale(options.yextent[1]-options.yextent[0])
+
+$: console.log(options)
 
 // hand over a data structure consisting of an object where each entry is an array
 </script>
@@ -65,7 +67,7 @@ $: dy = mousep.dy()/lines.length
 
 <svg height={options.height} width={options.width} on:mousedown={dragstart} on:mousemove={drag} on:mouseup={dragend}>
   {#each lines as d,i}
-    <g transform="translate({500+dx*i},{500+dy*i})" >
+    <g transform="translate({options.width/20+dx*i},{y1+dy*i})" >
       <path stroke = {options.color} d={line(d)}></path>
     </g>
   {/each}

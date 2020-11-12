@@ -6,14 +6,14 @@
 
   // props
   export let date;
-  export let isAllowed;
+  export let isAllowed = ()=>true
 
   // local vars to help in render
   const weekdays = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"];
   
   let firstofmonth,lastofmonth, sunday, lastday, dayarray 
   
-  console.log(dfunc)
+  // console.log(dfunc)
 
   $: firstofmonth = dfunc.startOfMonth(date)
   $: lastofmonth = dfunc.endOfMonth(date)
@@ -25,6 +25,8 @@
         }
       dayarray = dfunc.eachDayOfInterval({start:sunday,end:lastday})
       } 
+
+  // const clickhandler = (day) => isAllowed(day) && date = day    
 
 </script>
 
@@ -60,13 +62,6 @@
   .notthismonth{
     color:thistle
   }
-
-  .disabled {
-    background: #efefef;
-    cursor: not-allowed;
-    color: #bfbfbf;
-  }
-
   .highlight:hover {
     background: rgb(238, 176, 60);
     color: #fff;
@@ -77,6 +72,13 @@
   .selected.highlight:hover {
     background: yellowgreen;
   }
+
+  .disabled {
+    background: #bbb;
+    cursor: not-allowed;
+    color: #999;
+  }
+
 </style>
 
 <div class="container">
@@ -89,9 +91,9 @@
   <div class="row">
     {#each dayarray as day}
       <div
-        on:click={() => date = day}
+        on:click={()=>{if(isAllowed(day)){date=day}}}
         class:cell={true}
-        class:highlight={true}
+        class:highlight={isAllowed(day)}
         class:disabled={!isAllowed(day)}
         class:selected={+day==+date}
         class:notthismonth={day.getMonth()!=date.getMonth()}>
