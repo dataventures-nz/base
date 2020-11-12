@@ -60,6 +60,7 @@
     <a class = item href="/user">User</a>
     <a class = item href="/admin">Admin</a>
     <a class = item href="/demo">Demo</a>
+    <a class = item href="/chartbox">Charts</a>
   </div>
   <div class = rightitems>
     <div class=usr>

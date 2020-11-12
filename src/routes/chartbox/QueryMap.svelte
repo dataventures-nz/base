@@ -1,0 +1,114 @@
+<script>
+  
+  import Map from '../../components/map/Map.svelte';
+  import MapSource from '../../components/map/MapSource.svelte';
+  import MapLayer from '../../components/map/MapLayer.svelte';
+  import GeoCoder from '../../components/map/GeoCoder.svelte'
+  import SelectableMapLayer from '../../components/map/SelectableMapLayer.svelte';
+  import {ctrl_click_adds} from '../../components/map/select_modes.js'
+  import NavigationControl from '../../components/map/NavigationControl.svelte';
+  export let selectMode = ctrl_click_adds
+  export let height = 500
+  export let layerlist
+  export let allowedlayers
+  export let currentlayer 
+  let map
+
+  const fill = {
+      "paint": {
+        "fill-color" :["coalesce", ["feature-state", "color"], "#627BC1"],
+        "fill-opacity":
+          ["case",
+            ["boolean", ["feature-state", "hover"], false], 0.7,
+            ["boolean", ["feature-state", "selected"], false], 0.7,
+            0
+          ],
+      }
+  }
+  const lines = {
+    "paint": {
+      "line-color": ["case",
+        ["boolean", ["feature-state", "hover"], false], ["coalesce", ["feature-state", "color"], "#627BC1"],
+        ["boolean", ["feature-state", "selected"], false], ["coalesce", ["feature-state", "color"], "#627BC1"],
+        "#627BC1"
+      ],
+      "line-width": ["case", ["boolean", ["feature-state", "hover"], false], 1, ["boolean", ["feature-state", "selected"], false], 1, 0.5 ],
+      "line-opacity": ["case", ["boolean", ["feature-state", "hover"], false], 1, ["boolean", ["feature-state", "selected"], false], 1, 0.5 ],
+    }
+  }
+  
+  const mapcolour = "#446a9f"
+
+
+  function accessor_for(map){
+    let p =map.properties
+    return (feature) => {return {id:feature.id,area_id:feature.properties[p.id],name:feature.properties[p.name]}}
+  }
+
+  function reverse_accessor_for(map){
+    let p = map.properties
+    function reverse_accessor(d){
+      return {[p.id]:d.area_id}
+    }
+    return reverse_accessor
+  }
+
+  function tab_click_for(layer,i){
+    function clickhandler(){     
+      currentlayer = i
+      layerlist.forEach(d=> d.ui.visible=false )
+      layerlist[i].ui.visible = true
+    }
+    return clickhandler
+  }
+
+  $: if(allowedlayers && !allowedlayers.find(x=> x == layerlist[currentlayer].db.field)){
+    currentlayer=0
+      do {
+        currentlayer ++
+      } while (!allowedlayers.find(x=> x == layerlist[currentlayer].db.field) && currentlayer < (layerlist.length-1))
+    layerlist.forEach(d=> d.ui.visible=false )
+    layerlist[currentlayer].ui.visible = true
+  }
+  
+</script>
+
+<!-- <button on:click={console.log(map)}>click for console.log(map)</button> -->
+
+<div class="tabs is-toggle is-boxed" style='margin-bottom:0;height:42px'>
+  <ul class="tabs-panel columns is-gapless">
+    {#if allowedlayers.length}
+      {#each layerlist as layer,i (layer.map.name)}
+        {#if allowedlayers && allowedlayers.find(x=> x == layer.db.field)}
+          <li class="column" class:is-active={currentlayer==i}>
+            <!-- svelte-ignore a11y-missing-attribute -->
+            <a on:click={tab_click_for(layer,i)} >
+              <span> {layer.ui.displayname} </span>
+            </a>
+          </li>
+        {/if}
+      {/each}
+    {:else}
+      <li class="column is-active">
+        <!-- svelte-ignore a11y-missing-attribute -->
+        <a>
+          <span> No geography fields avaliable </span>
+        </a>
+      </li>
+    {/if}
+  </ul>
+</div>
+
+
+<div style=height:{height}px >
+  <Map bind:map={map} lat={-41.5} lon={172} zoom={4.5} minZoom={3.5} style='mapbox://styles/dataventures/cjzaospfz0i1l1cn3kcuof5ix'>
+    {#each layerlist as layer (layer.map.name)}
+        <MapSource name={layer.map.name} type="vector" url={layer.map.url}>
+          <SelectableMapLayer bind:visible={layer.ui.visible} id={layer.map.name+"-fill"} type="fill" {selectMode} sourcelayer={layer.map.sourcelayer} options={fill} id_accessor={accessor_for(layer.map)} reverse_accessor={reverse_accessor_for(layer.map)} bind:selected={layer.map.selection}/>
+          <MapLayer bind:visible={layer.ui.visible} id={layer.map.name+"-lines"} type="line" sourcelayer={layer.map.sourcelayer} options={lines}></MapLayer>
+        </MapSource>
+    {/each}
+    <GeoCoder/>
+    <NavigationControl/>
+  </Map>
+</div>
