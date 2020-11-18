@@ -3,7 +3,6 @@
 </script>
 <script>
   import Banner from '$components/Banner.svelte'
-  import "./_global.pcss"
 </script>
 <style>
 	:root {
