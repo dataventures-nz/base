@@ -39,7 +39,6 @@
   
   const mapcolour = "#446a9f"
 
-
   function accessor_for(map){
     let p =map.properties
     return (feature) => {return {id:feature.id,area_id:feature.properties[p.id],name:feature.properties[p.name]}}
@@ -53,52 +52,15 @@
     return reverse_accessor
   }
 
-  function tab_click_for(layer,i){
-    function clickhandler(){     
-      currentlayer = i
-      layerlist.forEach(d=> d.ui.visible=false )
-      layerlist[i].ui.visible = true
-    }
-    return clickhandler
-  }
+  $:layerlist[currentlayer].ui.visible = true
 
   $: if(allowedlayers && !allowedlayers.find(x=> x == layerlist[currentlayer].db.field)){
     currentlayer=0
-      do {
-        currentlayer ++
-      } while (!allowedlayers.find(x=> x == layerlist[currentlayer].db.field) && currentlayer < (layerlist.length-1))
-    layerlist.forEach(d=> d.ui.visible=false )
     layerlist[currentlayer].ui.visible = true
+    console.log(currentlayer,layerlist[currentlayer])
   }
   
 </script>
-
-<!-- <button on:click={console.log(map)}>click for console.log(map)</button> -->
-
-<div class="tabs is-toggle is-boxed" style='margin-bottom:0;height:42px'>
-  <ul class="tabs-panel columns is-gapless">
-    {#if allowedlayers.length}
-      {#each layerlist as layer,i (layer.map.name)}
-        {#if allowedlayers && allowedlayers.find(x=> x == layer.db.field)}
-          <li class="column" class:is-active={currentlayer==i}>
-            <!-- svelte-ignore a11y-missing-attribute -->
-            <a on:click={tab_click_for(layer,i)} >
-              <span> {layer.ui.displayname} </span>
-            </a>
-          </li>
-        {/if}
-      {/each}
-    {:else}
-      <li class="column is-active">
-        <!-- svelte-ignore a11y-missing-attribute -->
-        <a>
-          <span> No geography fields avaliable </span>
-        </a>
-      </li>
-    {/if}
-  </ul>
-</div>
-
 
 <div style=height:{height}px >
   <Map bind:map={map} lat={-41.5} lon={172} zoom={4.5} minZoom={3.5} style='mapbox://styles/dataventures/cjzaospfz0i1l1cn3kcuof5ix'>

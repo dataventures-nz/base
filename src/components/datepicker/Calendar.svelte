@@ -34,7 +34,7 @@
   .container {
     margin-top: 8px;
     padding: 6px;
-    width: 370px;
+    width: 320px;
   }
   .row {
     display: flex;
@@ -44,11 +44,11 @@
 
   .cell {
     display: inline-block;
-    width: 40px;
-    height: 20px;
+    height: 30px;
     text-align: center;
     padding: 4px;
     margin: 1px;
+    flex-basis:13%
   }
 
   .selected {

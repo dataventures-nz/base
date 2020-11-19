@@ -85,5 +85,25 @@
     selected = mutator(selected)
   }
 </script>
+<style>
+  :global div.mapboxgl-popup-content {
+    display: flex;
+    flex-direction:column;
+    align-items: center;
+    font-weight: bold;
+    min-width: 100px;
+  }
 
-<MapLayer {id}{type}{sourcelayer}{options}{visible} on:sourcedata={() => {selectedOnMap=[];sync(selected)}} on:click={mouseclickHandler} on:mousemove={mousemoveHandler} on:mouseleave={mouseleaveHandler}/>
+  :global div.mapboxgl-popup-content p {
+     margin:3px 0px 3px 0px;
+    }
+
+
+</style>
+
+<MapLayer {id}{type}{sourcelayer}{options}{visible} 
+  on:sourcedata={() => {selectedOnMap=[];sync(selected)}} 
+  on:click={mouseclickHandler} 
+  on:mousemove={mousemoveHandler} 
+  on:mouseleave={mouseleaveHandler}  
+/>

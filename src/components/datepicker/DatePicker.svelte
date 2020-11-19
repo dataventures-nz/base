@@ -35,6 +35,7 @@
   .relative {
     position: relative;
   }
+
   .box {
     position: absolute;
     top: 40px;
@@ -57,6 +58,7 @@
     justify-content: center;
     align-items: center;
   }
+
 </style>
 
 <div class="relative">

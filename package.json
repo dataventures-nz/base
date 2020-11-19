@@ -22,6 +22,7 @@
 	"dependencies": {
 		"bson": "^4.2.0",
 		"d3": "^6.2.0",
-		"date-fns": "^2.16.1"
+		"date-fns": "^2.16.1",
+		"save-svg-as-png": "^1.4.17"
 	}
 }

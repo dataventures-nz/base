@@ -1,62 +1,28 @@
 <script>
 import * as d3 from 'd3'
-import * as dfunc from 'date-fns'
 import _ from 'lodash'
 import WaterfallGraph from '$components/charts/WaterfallGraph.svelte'
 import {single_only} from '$components/map/select_modes.mjs'
 import QueryMap from './QueryMap.svelte'
-import {tokenPromise} from '$components/security.mjs'
-import whitelist from "./whitelist_public.json"
 import default_layerlist from "./field_to_layer.json"
-import Dropdown from './Dropdown.svelte';
 import DatePicker from '$components/datepicker/DatePicker.svelte';
 import Clear from './Clear.svelte';
 import {query} from '$components/api.mjs'
-import Crossfilter from '$components/crossfilter/Crossfilter.svelte'
-import Filter from '$components/crossfilter/Filter.svelte'
 
 
-let datefields = []
-let datefield
-let table = {}
+
+
+let datefield = "time"
+let table = "hourly_materialised"
 let startDate = new Date(2020,2,1)
 let endDate = new Date(2020,6,1)
-let dateformat ="yyyy-MM-dd'T'00:00:00'Z'"
 let layerlist = default_layerlist
-let allowedlayers = []
+let allowedlayers = ["sa2_2018_code"]
 let match
 let currentlayer = 0
 let selection = []
 let dbfield = ""
 
-// when we get schema written, this will be pulled from schema cache.
-async function tablechanged(){
-	const tablespec = table.endpoint.tables.find(d=>table.table===d.table)
-
-	if (tablespec){ // from file, rather than from server
-		datefields = tablespec.datefields
-    // dateformat = tablespec.dateformat
-    datefield = ""
-		return
-	}
-
-	const _meta = d3.json(table.endpoint.endpoint + "/meta/" + table.table, {
-		method: 'GET',
-		headers: {
-			'Access-Control-Allow-Headers':['Authorization'],
-			'Authorization': "Bearer "+ await tokenPromise
-		}
-	})
-
-	const meta = await _meta
-
-  allowedlayers = Object.keys(meta.fields)
-  allowedlayers = _.intersection(allowedlayers,layerlist.map(d=>d.db.field))
-
-  const fields = _.invertBy(meta.fields)
-  datefields = fields.date || []
-  datefield = ""
-}
 
 function make_match(selection,dbfield,datefield,startDate,endDate){
   let newmatch = {}
@@ -67,12 +33,11 @@ function make_match(selection,dbfield,datefield,startDate,endDate){
 
   if(datefield && (startDate || endDate)){
     newmatch[datefield]= {}
-    if (startDate) {newmatch[datefield].$gte = {$date:dfunc.format(startDate,dateformat)}}
-    if (endDate) {newmatch[datefield].$lt = {$date:dfunc.format(endDate,dateformat)}}  
+    if (startDate) {newmatch[datefield].$gte = startDate}
+    if (endDate) {newmatch[datefield].$lt = endDate}  
   }
 
   const projection = {_id:false,time:true,count:true}
-
   const pipeline = [{$match:newmatch},{$project:projection}]
 
   return pipeline
@@ -93,25 +58,33 @@ const cleardateselection = function(){
 }
 
 let period = 7*24*3600000
+let offset = 3.5*24*3600000
+let colorScale = d3.scaleLinear().domain([0,14]).range(["brown", "steelblue"])
+let opacity = d3.scaleLinear().domain([0,16]).range([0.2,0.7])
 
 let options={
-  height:600,
-  width:600,
-  color:"darkblue",
+  height:690,
+  width:690,
   xdomain: [0,period],
   ydomain:[0,100000],
+  position:[0.2,0.1], //fraction of height,width
+  plotwidth:0.8, //fraction of width
   yaccessor: d=>+d.count,
   xaccessor: d=>d.offset,
+  stroke:"darkblue",
+  line_only:true,
+  fill: (d,i)=>"darkblue",
+  // fill: (d,i)=>colorScale(i),
+  fillOpacity:(d,i)=>0.1
 }
-
-
 
 function clean(data){
   let groups ={}
+  let _groups = {}
   data.map(function(d){
     d.time = new Date(d.time)
-    d.cycle = Math.floor(d.time/period)
-    d.offset = d.time%period
+    d.cycle = Math.floor((+d.time-offset)/period)
+    d.offset = (+d.time-offset)%period
   })
   
   data.sort((a,b)=>a.time-b.time)
@@ -119,8 +92,19 @@ function clean(data){
   options.ydomain[1]=options.yextent[1]
 
   data.map(function(d){
-    if(groups[d.cycle]){groups[d.cycle].data.push(d)} else {groups[d.cycle]={data:[d]}}
+    if(_groups[d.cycle]){_groups[d.cycle].data.push(d)} else {_groups[d.cycle]={data:[d]}}
   })
+
+   let _values = Object.values(_groups)
+   _groups = Object.entries(_groups) 
+  
+
+  let gmax = _values.sort((a,b)=>b.data.length - a.data.length)[1]
+
+  _groups.map(d=>{
+    if(d[1].data.length >= gmax.data.length){groups[d[0]] = d[1]} 
+  })
+
   return groups
 }
 
@@ -129,16 +113,10 @@ $: dbfield = layerlist[currentlayer].db.field
 $: selection = layerlist[currentlayer].map.selection
 $: match = make_match(selection,dbfield,datefield,startDate,endDate)
 
+
 let data
-function plot(){data = query("population",table.table,match).then(clean)}
+function plot(){data = query("population",table,match).then(clean)}
 
-$:console.log(data)
-
-
-let startDateData
-let endDateData
-let mapData
-let chartData
 
 </script>
 
@@ -152,10 +130,8 @@ let chartData
     display: block;
     font-size: 1em;
     max-width: 100%;
-    outline: none;
+    outline: thin;
 	}
-
-
 
   .box{
     position:relative;
@@ -168,34 +144,13 @@ let chartData
 
 <section class = "container select-wrapper">
  	<div class="row">
-   	<div class="col-md-6">
+   	<div class="col-md-5">
       <div class=box>
-            <p>First choose a table to query </p>
-            <div class="select control is-fullwidth">
-              <Dropdown whitelist={whitelist} on:change={tablechanged} bind:table={table}/>
-        </div>
-      </div>
-      <div class=box>
-        <Clear clearfn = {clearmapselection}></Clear>
-        <p >Optional: Select specific areas</p>
-        <div>
-          <QueryMap height = 650 selectMode={single_only} {allowedlayers} bind:layerlist bind:currentlayer ></QueryMap>
-        </div>
-      </div>
-		</div>
-   	<div class="col-md-6">
-   	  <div class=box>
         <Clear clearfn = {cleardateselection}></Clear>
         <div class = "columns select-wrapper">
           <div class = column>
-            <p> Optional: Filter by date</p>
+            <p> Filter by date</p>
             <div class="select control is-fullwidth">
-              <select name="Choosedatefield" bind:value = {datefield} class="input">
-                <option selected disabled class="header" value="">Choose a Date field</option>
-                {#each datefields as field}
-                  <option class = "option" value={field}> {field} </option>
-                {/each}
-              </select>
               <div>
                 <DatePicker bind:selected = {startDate} isAllowed={(date)=>date<=endDate}/>
                 <DatePicker bind:selected = {endDate} isAllowed={(date)=>date>=startDate}/>
@@ -212,14 +167,23 @@ let chartData
         </div>
       </div>
       <div class=box>
+        <Clear clearfn = {clearmapselection}></Clear>
+        <p>Select an area</p>
+        <div>
+          <QueryMap height = 625 selectMode={single_only} {allowedlayers} bind:layerlist currentlayer={0} ></QueryMap>
+        </div>
+      </div>
+      <div class=box>
         <p>{JSON.stringify(match)}</p>
       </div>
+		</div>
+   	<div class="col-md-7">
       <div class=box>
         {#if data}
           {#await data}
             {JSON.stringify(options)}
           {:then groups} 
-            <WaterfallGraph groups={groups} bind:options={options}/>
+            <WaterfallGraph groups={groups} {...options}/>
           {/await}
         {/if}
         
@@ -228,9 +192,3 @@ let chartData
 	</div>
 </section>
 
-<Crossfilter db="population" collection="noon_by_rto" active=true>
-  <Filter id="startdate" bind:brush={startDate} pipeline={[{name:"startdate"}]} bind:data={startDateData}/>
-  <Filter id="enddate" bind:brush={endDate} pipeline={[{name:"enddate"}]} bind:data={endDateData}/>
-  <Filter id="map" bind:brush={selection} pipeline={[{name:"selection"}]} bind:data={mapData}/>
-  <Filter id="chart" pipeline={[{name:"chart"}]} bind:data={chartData}/>
-</Crossfilter>
