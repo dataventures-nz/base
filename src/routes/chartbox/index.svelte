@@ -10,8 +10,6 @@ import Clear from './Clear.svelte';
 import {query} from '$components/api.mjs'
 
 
-
-
 let datefield = "time"
 let table = "hourly_materialised"
 let startDate = new Date(2020,2,1)
@@ -59,24 +57,27 @@ const cleardateselection = function(){
 
 let period = 7*24*3600000
 let offset = 3.5*24*3600000
-let colorScale = d3.scaleLinear().domain([0,14]).range(["brown", "steelblue"])
+let colorScale = d3.scaleLinear().domain([0,14]).range(["white", "darkblue"])
+let strokecolorScale = d3.scaleLinear().domain([14,0]).range(["white", "darkblue"])
 let opacity = d3.scaleLinear().domain([0,16]).range([0.2,0.7])
 
 let options={
-  height:690,
-  width:690,
+  height:685,
+  width:685,
   xdomain: [0,period],
   ydomain:[0,100000],
-  position:[0.2,0.1], //fraction of height,width
-  plotwidth:0.8, //fraction of width
   yaccessor: d=>+d.count,
   xaccessor: d=>d.offset,
-  stroke:"darkblue",
+  stroke:(d,i)=>"darkblue",
+  // stroke:(d,i)=>strokecolorScale(i),
   line_only:true,
-  fill: (d,i)=>"darkblue",
-  // fill: (d,i)=>colorScale(i),
-  fillOpacity:(d,i)=>0.1
+  // fill: (d,i)=>"darkblue",
+  fill: (d,i)=>colorScale(i),
+  fillOpacity:(d,i)=>1
 }
+
+let position=[0.2,0.1] //fraction of height,width
+let plotwidth=0.3 //fraction of width
 
 function clean(data){
   let groups ={}
@@ -108,10 +109,12 @@ function clean(data){
   return groups
 }
 
+let _position ="[0.1,0.0]"
 
 $: dbfield = layerlist[currentlayer].db.field
 $: selection = layerlist[currentlayer].map.selection
 $: match = make_match(selection,dbfield,datefield,startDate,endDate)
+$: try {position = JSON.parse(_position)} catch(err){console.log(err)}
 
 
 let data
@@ -138,6 +141,12 @@ function plot(){data = query("population",table,match).then(clean)}
     border: 1px solid black;
     padding: 5px;
     margin:5px;
+  }
+
+  .flex{
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
   }
 
 </style>
@@ -178,12 +187,19 @@ function plot(){data = query("population",table,match).then(clean)}
       </div>
 		</div>
    	<div class="col-md-7">
+      <div class="box flex">
+        <input type="text" bind:value={_position} />
+        <input type="text" bind:value={plotwidth} />
+      </div>
       <div class=box>
         {#if data}
           {#await data}
             {JSON.stringify(options)}
           {:then groups} 
-            <WaterfallGraph groups={groups} {...options}/>
+            <WaterfallGraph groups={groups} 
+              bind:position={position} 
+              bind:plotwidth={plotwidth} 
+              {...options}/>
           {/await}
         {/if}
         

@@ -14,7 +14,7 @@ import picsaver from 'save-svg-as-png'
   export let yaccessor = d=>+d.y
   export let xaccessor = d=>d.offset
   export let line_only = false
-  export let stroke = "black"
+  export let stroke = (d,i)=>"black"
   export let fill = (d,i)=>"black"
   export let fillOpacity = (d,i)=>1
 
@@ -22,9 +22,7 @@ import picsaver from 'save-svg-as-png'
   $: options = {height,width,xdomain,ydomain,yextent,yaccessor,xaccessor}
 
   let yscale = d3.scaleLinear()
-  $: yscale.domain(options.ydomain).range([options.height*position[0],0])
   let xscale = d3.scaleLinear()
-  $: xscale.domain(options.xdomain).range([0,width*plotwidth])
   
   const area = d3.area()
     .x((d)=>xscale(options.xaccessor(d)))
@@ -35,10 +33,8 @@ import picsaver from 'save-svg-as-png'
     .x((d)=>xscale(options.xaccessor(d)))
     .y(d=>yscale(options.yaccessor(d)))
     
-
   let lines 
   $: lines = Object.values(groups).map(d=>d.data)
-
 
 let mousedown = false
 let mousep = {
@@ -71,11 +67,28 @@ let dx,dy,y1
 
 let svg
 
+$: {yscale.domain(options.ydomain).range([options.height*position[0],0])
+    area
+      .y0(d=>yscale(options.yaccessor(d)))
+      .y1(d=>yscale(0))
+    line
+      .y(d=>yscale(options.yaccessor(d)))
+    }
+$: {xscale.domain(options.xdomain).range([0,width*plotwidth])
+    area.x((d)=>xscale(options.xaccessor(d)))
+    line.x((d)=>xscale(options.xaccessor(d)))
+    }
 $: dx = mousep.dx()/lines.length
 $: dy = mousep.dy()/lines.length
 $: y1 = yscale(options.yextent[1]-options.yextent[0])
 
+
+
 const savesvg = ()=> picsaver.saveSvg(svg,"mysvg.svg",{excludeUnusedCss:true}) 
+const savewithoutcss = ()=> picsaver.saveSvg(svg,"mysvg.svg",{excludeCss:true})
+const savepng = ()=> picsaver.saveSvgAsPng(svg,"mypng.png",{backgroundColor:"white"})  
+
+
 
 // hand over a data structure consisting of an object where each entry is an array
 </script>
@@ -90,11 +103,13 @@ const savesvg = ()=> picsaver.saveSvg(svg,"mysvg.svg",{excludeUnusedCss:true})
   {#each lines as d,i}
     <g transform="translate({options.width*position[1]+dx*i},{y1+dy*i})" >
       {#if line_only}
-       <path fill = none stroke = {stroke}  d={line(d)}></path>
+       <path fill = none stroke={stroke(d,i)}  d={line(d)}></path>
       {:else}
-        <path fill={fill(d,i)} fill-opacity={fillOpacity(d,i)} stroke = {stroke} d={area(d)}></path>
+        <path fill={fill(d,i)} fill-opacity={fillOpacity(d,i)} stroke={stroke(d,i)} d={area(d)}></path>
       {/if}    
     </g>
   {/each}
 </svg>
 <button on:click = {savesvg}>gimme</button>
+<button on:click = {savewithoutcss}>no css</button>
+<button on:click = {savepng}>png</button>
