@@ -24,3 +24,5 @@ export const post_api = (service,q) => fetch_json('POST', api_url(service),q)
 export const listDatabases = () => get_api("/")
 export const listCollections = (db) => get_api(`/${db}`)
 export const listNodes = () => get_api(`/admin/${db}`)
+
+export const normalise = (q) => bson.EJSON.serialize(q)
