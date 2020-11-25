@@ -13,10 +13,16 @@ import picsaver from 'save-svg-as-png'
   export let yextent =[0,1] 
   export let yaccessor = d=>+d.y
   export let xaccessor = d=>d.offset
-  export let line_only = false
+  // export let line_only = false
   export let stroke = (d,i)=>"black"
   export let fill = (d,i)=>"black"
+  export let background = "#ffffff"
   export let fillOpacity = (d,i)=>1
+  export let brokenaxis = 0
+  export let filename = "filename"
+  export let filled = false
+  export let closed = false
+  export let hasbackground = false
 
   let options
   $: options = {height,width,xdomain,ydomain,yextent,yaccessor,xaccessor}
@@ -65,12 +71,12 @@ const dragend = (e)=>{mousedown = false}
 
 let dx,dy,y1
 
-let svg
+let svg,svgbackgroundstyle
 
 $: {yscale.domain(options.ydomain).range([options.height*position[0],0])
     area
       .y0(d=>yscale(options.yaccessor(d)))
-      .y1(d=>yscale(0))
+      .y1(d=>yscale(brokenaxis*options.ydomain[1]))
     line
       .y(d=>yscale(options.yaccessor(d)))
     }
@@ -81,13 +87,12 @@ $: {xscale.domain(options.xdomain).range([0,width*plotwidth])
 $: dx = mousep.dx()/lines.length
 $: dy = mousep.dy()/lines.length
 $: y1 = yscale(options.yextent[1]-options.yextent[0])
+$: svgbackgroundstyle = hasbackground ? "background-color:"+background : "background-color:none"
+$: console.log(fillOpacity)
 
-
-
-const savesvg = ()=> picsaver.saveSvg(svg,"mysvg.svg",{excludeUnusedCss:true}) 
-const savewithoutcss = ()=> picsaver.saveSvg(svg,"mysvg.svg",{excludeCss:true})
-const savepng = ()=> picsaver.saveSvgAsPng(svg,"mypng.png",{backgroundColor:"white"})  
-
+const savesvg = ()=> picsaver.saveSvg(svg,filename+".svg",{excludeUnusedCss:true}) 
+const savewithoutcss = ()=> picsaver.saveSvg(svg,filename+".svg",{excludeCss:true})
+const savepng = ()=> picsaver.saveSvgAsPng(svg,filename+".png")  
 
 
 // hand over a data structure consisting of an object where each entry is an array
@@ -95,21 +100,34 @@ const savepng = ()=> picsaver.saveSvgAsPng(svg,"mypng.png",{backgroundColor:"whi
 
 <style>
   svg{
-    border:black
+    /* background-color: azure; */
     }
+  rect{
+    stroke:black;
+  }
 </style>
 
-<svg height={options.height} width={options.width} bind:this={svg} on:mousedown={dragstart} on:mousemove={drag} on:mouseup={dragend}>
-  {#each lines as d,i}
-    <g transform="translate({options.width*position[1]+dx*i},{y1+dy*i})" >
-      {#if line_only}
-       <path fill = none stroke={stroke(d,i)}  d={line(d)}></path>
-      {:else}
-        <path fill={fill(d,i)} fill-opacity={fillOpacity(d,i)} stroke={stroke(d,i)} d={area(d)}></path>
-      {/if}    
-    </g>
-  {/each}
+<svg 
+  height={options.height} 
+  width={options.width} 
+  style={svgbackgroundstyle} 
+  bind:this={svg} on:mousedown={dragstart} 
+  on:mousemove={drag} on:mouseup={dragend}
+  >
+  <rect height={options.height} width={options.width} fill=none/>
+  {#key {plotwidth,position,brokenaxis}}
+    {#each lines as d,i}
+      <g transform="translate({options.width*position[1]+dx*i},{y1+dy*i})" >
+        {#if !closed}
+        <path fill = none stroke={stroke(d,i)}  d={line(d)}></path>
+        {:else}
+          <path fill={filled ? fill(d,i):"none"} fill-opacity={fillOpacity(d,i)} stroke={stroke(d,i)} d={area(d)}></path>
+        {/if}
+      </g>
+    {/each}
+  {/key}
 </svg>
+
 <button on:click = {savesvg}>gimme</button>
 <button on:click = {savewithoutcss}>no css</button>
 <button on:click = {savepng}>png</button>

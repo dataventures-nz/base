@@ -6,14 +6,15 @@ import {single_only} from '$components/map/select_modes.mjs'
 import QueryMap from './QueryMap.svelte'
 import default_layerlist from "./field_to_layer.json"
 import DatePicker from '$components/datepicker/DatePicker.svelte';
+import ColorPicker from '$components/ToggledColorPicker.svelte';
 import Clear from './Clear.svelte';
 import {query} from '$components/api.mjs'
 
-
+let filename = "waterfall"
 let datefield = "time"
 let table = "hourly_materialised"
-let startDate = new Date(2020,2,1)
-let endDate = new Date(2020,6,1)
+let startDate = new Date(2020,0,1)
+let endDate = new Date(2020,10,1)
 let layerlist = default_layerlist
 let allowedlayers = ["sa2_2018_code"]
 let match
@@ -59,25 +60,34 @@ let period = 7*24*3600000
 let offset = 3.5*24*3600000
 let colorScale = d3.scaleLinear().domain([0,14]).range(["white", "darkblue"])
 let strokecolorScale = d3.scaleLinear().domain([14,0]).range(["white", "darkblue"])
-let opacity = d3.scaleLinear().domain([0,16]).range([0.2,0.7])
+let opacity = 0.3//= d3.scaleLinear().domain([0,16]).range([0.2,0.7])
 
 let options={
-  height:685,
-  width:685,
+  height:420*1.14,
+  width:595*1.14,
   xdomain: [0,period],
-  ydomain:[0,100000],
+  ydomain:[0,1000],
   yaccessor: d=>+d.count,
   xaccessor: d=>d.offset,
-  stroke:(d,i)=>"darkblue",
+  // stroke:(d,i)=>"darkblue",
   // stroke:(d,i)=>strokecolorScale(i),
-  line_only:true,
-  // fill: (d,i)=>"darkblue",
-  fill: (d,i)=>colorScale(i),
-  fillOpacity:(d,i)=>1
+  //line_only:true,
+  // fill: (d,i)=>"none",
+  // fill: (d,i)=>colorScale(i),
+  // fillOpacity:(d,i)=>1
+  
 }
-
-let position=[0.2,0.1] //fraction of height,width
-let plotwidth=0.3 //fraction of width
+let brokenaxis=0
+let position
+let x_position=0.25 //fraction of height
+let y_position = 0.05 //fraction of width
+let plotwidth=0.5 //fraction of width
+let stroke="#000000"
+let fill="#ffffff"
+let background = "#eeeeee"
+let filled = false
+let closed = false
+let hasbackground = false
 
 function clean(data){
   let groups ={}
@@ -109,12 +119,11 @@ function clean(data){
   return groups
 }
 
-let _position ="[0.1,0.0]"
-
 $: dbfield = layerlist[currentlayer].db.field
 $: selection = layerlist[currentlayer].map.selection
 $: match = make_match(selection,dbfield,datefield,startDate,endDate)
-$: try {position = JSON.parse(_position)} catch(err){console.log(err)}
+$: position = [x_position,y_position]
+$: console.log(stroke,fill)
 
 
 let data
@@ -147,7 +156,12 @@ function plot(){data = query("population",table,match).then(clean)}
     display: flex;
     flex-direction: row;
     align-items: stretch;
+    flex-wrap:wrap
   }
+
+  #numbers input{
+    width:17%
+    }
 
 </style>
 
@@ -160,7 +174,7 @@ function plot(){data = query("population",table,match).then(clean)}
           <div class = column>
             <p> Filter by date</p>
             <div class="select control is-fullwidth">
-              <div>
+              <div class = flex>
                 <DatePicker bind:selected = {startDate} isAllowed={(date)=>date<=endDate}/>
                 <DatePicker bind:selected = {endDate} isAllowed={(date)=>date>=startDate}/>
               </div>
@@ -187,9 +201,26 @@ function plot(){data = query("population",table,match).then(clean)}
       </div>
 		</div>
    	<div class="col-md-7">
-      <div class="box flex">
-        <input type="text" bind:value={_position} />
-        <input type="text" bind:value={plotwidth} />
+      <div class="box">
+        <div class = "flex" id="numbers">
+          <input type="number" step = 0.05 min=0.05 max=0.95 bind:value={x_position} />
+          <input type="number" step = 0.05 min = -1 max =1 bind:value={y_position} />
+          <input type="number" step = 0.05 min=0.05 max=1 bind:value={plotwidth} />
+          <input type="number" step = 0.05 bind:value={brokenaxis} />
+          <input type="number" step = 0.05 min = 0.05 max = 1 bind:value={opacity} />
+        </div>
+        <div class = "flex">
+          <ColorPicker bind:toggle={closed} bind:color={stroke} label=Closed/>
+          {#if closed}
+            <ColorPicker bind:toggle={filled} bind:color={fill} label=Filled/>
+          {/if}
+          <ColorPicker bind:toggle={hasbackground} bind:color={background} label=Background/> 
+        
+          <div style = "padding:5px">
+            <label for="filename">Filename</label>
+            <input type="text" placeholder ="waterfall" bind:value={filename} />
+          </div> 
+        </div>
       </div>
       <div class=box>
         {#if data}
@@ -198,7 +229,16 @@ function plot(){data = query("population",table,match).then(clean)}
           {:then groups} 
             <WaterfallGraph groups={groups} 
               bind:position={position} 
-              bind:plotwidth={plotwidth} 
+              bind:plotwidth={plotwidth}
+              bind:brokenaxis={brokenaxis}
+              filename={filename}
+              stroke={(d,i)=>stroke} 
+              fill={(d,i)=>fill}
+              fillOpacity={(d,i)=>opacity}
+              closed={closed} 
+              filled={filled}  
+              background={background}
+              hasbackground={hasbackground}    
               {...options}/>
           {/await}
         {/if}

@@ -18,7 +18,6 @@
 	"dependencies": {
 		"@auth0/auth0-spa-js": "^1.13.1",
 		"bson": "^4.2.0",
-
 		"d3": "^6.2.0",
 		"date-fns": "^2.16.1",
 		"node-sass": "^5.0.0",
