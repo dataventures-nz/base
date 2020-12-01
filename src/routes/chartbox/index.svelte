@@ -63,8 +63,8 @@ let strokecolorScale = d3.scaleLinear().domain([14,0]).range(["white", "darkblue
 let opacity = 0.3//= d3.scaleLinear().domain([0,16]).range([0.2,0.7])
 
 let options={
-  height:420*1.14,
-  width:595*1.14,
+  // height:420*1.14,
+  // width:595*1.14,
   xdomain: [0,period],
   ydomain:[0,1000],
   yaccessor: d=>+d.count,
@@ -75,8 +75,11 @@ let options={
   // fill: (d,i)=>"none",
   // fill: (d,i)=>colorScale(i),
   // fillOpacity:(d,i)=>1
-  
 }
+
+let height
+let width 
+
 let brokenaxis=0
 let position
 let x_position=0.25 //fraction of height
@@ -128,7 +131,8 @@ $: console.log(stroke,fill)
 
 let data
 function plot(){data = query("population",table,match).then(clean)}
-
+let chartdiv
+$: if (chartdiv){width=(chartdiv.getBoundingClientRect().width)-12}
 
 </script>
 
@@ -165,11 +169,11 @@ function plot(){data = query("population",table,match).then(clean)}
 
 </style>
 
-<section class = "container select-wrapper">
+<section class = "container-fluid select-wrapper">
  	<div class="row">
    	<div class="col-md-5">
       <div class=box>
-        <Clear clearfn = {cleardateselection}></Clear>
+        <!-- <Clear clearfn = {cleardateselection}></Clear> -->
         <div class = "columns select-wrapper">
           <div class = column>
             <p> Filter by date</p>
@@ -190,14 +194,11 @@ function plot(){data = query("population",table,match).then(clean)}
         </div>
       </div>
       <div class=box>
-        <Clear clearfn = {clearmapselection}></Clear>
+        <!-- <Clear clearfn = {clearmapselection}></Clear> -->
         <p>Select an area</p>
         <div>
-          <QueryMap height = 625 selectMode={single_only} {allowedlayers} bind:layerlist currentlayer={0} ></QueryMap>
+          <QueryMap height = 700 selectMode={single_only} {allowedlayers} bind:layerlist currentlayer={0} ></QueryMap>
         </div>
-      </div>
-      <div class=box>
-        <p>{JSON.stringify(match)}</p>
       </div>
 		</div>
    	<div class="col-md-7">
@@ -222,7 +223,7 @@ function plot(){data = query("population",table,match).then(clean)}
           </div> 
         </div>
       </div>
-      <div class=box>
+      <div class=box bind:this={chartdiv}>
         {#if data}
           {#await data}
             {JSON.stringify(options)}
@@ -238,7 +239,9 @@ function plot(){data = query("population",table,match).then(clean)}
               closed={closed} 
               filled={filled}  
               background={background}
-              hasbackground={hasbackground}    
+              hasbackground={hasbackground}
+              width={width}
+              height={width*420/595}    
               {...options}/>
           {/await}
         {/if}

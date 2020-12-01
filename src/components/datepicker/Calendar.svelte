@@ -34,7 +34,7 @@
   .container {
     margin-top: 8px;
     padding: 6px;
-    width: 320px;
+    width: 325px;
   }
   .row {
     display: flex;
@@ -48,7 +48,7 @@
     text-align: center;
     padding: 4px;
     margin: 1px;
-    flex-basis:13%
+    flex-basis:11%
   }
 
   .selected {
