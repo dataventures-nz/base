@@ -7,7 +7,6 @@ import QueryMap from './QueryMap.svelte'
 import default_layerlist from "./field_to_layer.json"
 import DatePicker from '$components/datepicker/DatePicker.svelte';
 import ColorPicker from '$components/ToggledColorPicker.svelte';
-import Clear from './Clear.svelte';
 import {query} from '$components/api.mjs'
 
 let filename = "waterfall"
