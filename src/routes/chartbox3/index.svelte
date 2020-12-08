@@ -1,26 +1,26 @@
 <script>
-import * as d3 from 'd3'
-import _ from 'lodash'
 import PolarGraph from '$components/charts/PolarGraph.svelte'
-import {single_only} from '$components/map/select_modes.mjs'
+import PolarTrace from '$components/charts/PolarTrace.svelte'
+import { xor_only } from '$components/map/select_modes.mjs'
 import QueryMap from './QueryMap.svelte'
 import default_layerlist from "./field_to_layer.json"
 import DatePicker from '$components/datepicker/DatePicker.svelte';
-import ColorPicker from '$components/ToggledColorPicker.svelte';
 import {query} from '$components/api.mjs'
 import ChartPrinter from '$components/charts/ChartPrinter.svelte'
 
 let filename = "polargraph"
 let datefield = "time"
 let table = "hourly_materialised"
-let startDate = new Date(2020,0,1)
-let endDate = new Date(2020,10,1)
+let startDate = new Date(2020,3,1)
+let endDate = new Date(2020,5,1)
 let layerlist = default_layerlist
 let allowedlayers = ["sa2_2018_code"]
 let match
+let matches
 let currentlayer = 0
 let selection = []
 let dbfield = ""
+let stroke = "black"
 
 
 function make_match(selection,dbfield,datefield,startDate,endDate){
@@ -44,13 +44,11 @@ function make_match(selection,dbfield,datefield,startDate,endDate){
 
 function clean(data){
   data.map(function(d){
-    console.log(d.time, new Date(d.time), d.count)
     d.time = new Date(d.time)
     d.r = +d.count
     d.theta = d.time.getDay()+d.time.getHours()/24
   })
   data.sort((a,b)=>a.time-b.time)
-  console.log(data[0])
   return data
 }
 
@@ -60,7 +58,7 @@ let options ={
   plotRadius,
   labelAccessor : d=>d.time,
   thetaMax : 7,
-  showPoints:true,
+  showPoints:false,
   axisTitles: new Array(7).fill(""),
   arcOptions:{
     labels:new Array(14).fill(""),
@@ -73,12 +71,13 @@ let options ={
 $: dbfield = layerlist[currentlayer].db.field
 $: selection = layerlist[currentlayer].map.selection
 $: match = make_match(selection,dbfield,datefield,startDate,endDate)
+$: matches = selection.map(s=> make_match(s,dbfield,datefield,startDate,endDate))
+$: console.log(selection,matches,dataarrays)
 
-
-let data
+let dataarrays
 let svg
 let width
-function plot(){data = query("population",table,match).then(clean)}
+function plot(){dataarrays = matches.map(match=>query("population",table,match).then(clean))}
 let chartdiv
 $: if (chartdiv){width=(chartdiv.getBoundingClientRect().width)-12}
 
@@ -144,7 +143,7 @@ $: if (chartdiv){width=(chartdiv.getBoundingClientRect().width)-12}
       <div class=box>
         <p>Select an area</p>
         <div>
-          <QueryMap height = 700 selectMode={single_only} {allowedlayers} bind:layerlist currentlayer={0} ></QueryMap>
+          <QueryMap height = 700 selectMode={xor_only} {allowedlayers} bind:layerlist currentlayer={0} ></QueryMap>
         </div>
       </div>
 		</div>
@@ -158,32 +157,38 @@ $: if (chartdiv){width=(chartdiv.getBoundingClientRect().width)-12}
           <input type="number" step = 0.05 min = 0.05 max = 1 bind:value={opacity} /> -->
         </div>
         <div class = "flex">
-          <!-- <ColorPicker bind:toggle={closed} bind:color={stroke} label=Closed/>
-          {#if closed}
+          <!-- <ColorPicker bind:toggle={closed} bind:color={stroke} label=Closed/> -->
+          <!--{#if closed}
             <ColorPicker bind:toggle={filled} bind:color={fill} label=Filled/>
           {/if}
           <ColorPicker bind:toggle={hasbackground} bind:color={background} label=Background/> 
          -->
-          <div style = "padding:5px">
+         
+          <div class = flex style = "padding:5px">
+            <label for="filename">Stroke</label>
+            <input type="color" bind:value={stroke}/>
             <label for="filename">Filename</label>
             <input type="text" placeholder ="polargraph" bind:value={filename} />
           </div> 
         </div>
       </div>
-      <div class=box bind:this={chartdiv}>
-        {#if data}
-          {#await data}
-            waiting for data
-          {:then d} 
-            <PolarGraph data = {d} bind:svg={svg} {...options}/>
-          {/await}
-        {/if}
-        
-      </div>
-      <div>
-        <ChartPrinter filename={"myfile"} svg={svg} />
+      <div class="row box">
+        <div class="col-md-9" bind:this={chartdiv}>
+          <PolarGraph  bind:svg={svg} {...options}>
+            {#if dataarrays}
+              {#each dataarrays as dat,i}
+                {#await dat}
+                {:then d} 
+                  <PolarTrace data = {d} str={stroke}></PolarTrace>
+                {/await}
+              {/each}   
+            {/if}
+          </PolarGraph>
+        </div>
+        <div class="col-md-3">
+          <ChartPrinter filename={filename} svg={svg} />
+        </div>
       </div>
 		</div>
 	</div>
 </section>
-

@@ -1,5 +1,6 @@
 <script>
   import * as d3 from "d3";
+  import { setContext } from 'svelte';
   export let data
   export let svg
   export let chartheight = 500
@@ -14,10 +15,10 @@
   export let label = false
   export let arcs = false
   export let pathOptions = {}
-  const defaultPathOptions ={
-      stroke:"black",
-      fill:"none"
-      }
+  export let str = "black"
+  export let fill = "none"
+      
+  
 
   export let  arcOptions = {}
   const defaultArcOptions ={ 
@@ -29,31 +30,24 @@
         stroke:["lightgrey","darkgrey"]
       }
   export let labelAccessor = d=>d.label
-  export let  pathId = 0
   export let  gradient=false
   export let  gradientStops=[
       {stop:"0%",color:"white"},
       {stop:"50%",color:"#EE6823"},
       {stop:"100%",color:"black"},
     ]
-
+    setContext("polarconstants",{plotRadius,margin,gradient})
 
   arcOptions = {...defaultArcOptions,...arcOptions}
- 
- 
-  pathOptions = {...defaultPathOptions,...pathOptions}
-
-  
-
 
   let rotAngle = 360/axisTitles.length
-  let thetaScale = d3.scaleLinear()
-    .domain([0,thetaMax ? thetaMax : d3.max(data,d=>d.theta)])
-    .range([0,2*Math.PI])
-  let rScale = d3.scaleLinear()
-    .domain([0,rMax ? rMax : d3.max(data,d=>d.r)])
-    .range([0,plotRadius])
-  let line = d3.lineRadial().angle(d=>thetaScale(d.theta)).radius(d=>rScale(d.r))
+  // let thetaScale = d3.scaleLinear()
+  //   .domain([0,thetaMax ? thetaMax : d3.max(data,d=>d.theta)])
+  //   .range([0,2*Math.PI])
+  // let rScale = d3.scaleLinear()
+  //   .domain([0,rMax ? rMax : d3.max(data,d=>d.r)])
+  //   .range([0,plotRadius])
+  // let line = d3.lineRadial().angle(d=>thetaScale(d.theta)).radius(d=>rScale(d.r))
   let svgSize = plotRadius+margin
 
   function x(d) {return rScale(d.r)*Math.sin(thetaScale(d.theta))}
@@ -120,13 +114,14 @@
       </g>
     {/each}
   {/if}
-  <g transform = {"translate("+svgSize+","+svgSize+")"}>
+  <!-- <g transform = {"translate("+svgSize+","+svgSize+")"}>
     {#if gradient}
       <path d={line(data)} style="fill:none;stroke:url(#gradient)"></path>
     {:else}
-      <path d={line(data)} {...pathOptions}></path>
+      <path d={line(data)} style={"fill:"+fill+";stroke:"+str}></path>
     {/if}
-  </g>
+  </g> -->
+  <slot></slot>
   {#if showPoints}
     {#each data as d,i}
       <g 

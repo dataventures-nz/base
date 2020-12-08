@@ -31,34 +31,28 @@
 </script>
 
 <style>
-  .container {
-    margin-top: 8px;
-    padding: 6px;
-    width: 325px;
-  }
-  .row {
-    display: flex;
-    margin: 2px 6px;
-    flex-wrap: wrap;
-  }
-
   .cell {
     display: inline-block;
-    height: 30px;
     text-align: center;
-    padding: 4px;
+    padding: 10px;
     margin: 1px;
-    flex-basis:11%
+  } 
+  .container{
+    display: flex ;
+    flex-direction: column;
+    width:auto;
+    padding: 0px 20px 0px 20px
   }
-
+  .row{
+    display: grid ;
+    grid-template-columns: 14% 14% 14% 14% 14% 14% 14% 
+  }
   .selected {
     background: #84e791;
   }
-
   .highlight {
     transition: transform 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
   }
-
   .notthismonth{
     color:thistle
   }
