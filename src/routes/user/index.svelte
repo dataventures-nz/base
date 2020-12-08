@@ -1,7 +1,9 @@
 <script>
   import * as security from '$components/security.mjs'
   const {userPromise, tokenPromise} = security
+  const putTextOnClipboard = text => navigator.clipboard.writeText(text)
 </script>
+
 {#await userPromise}
 Loading user
 {:then user}
@@ -13,5 +15,8 @@ Loading user
 {#await tokenPromise}
   Loading token
 {:then token}
-  {token}
+  alias durl='curl -H "Authorization: Bearer {token}"'<br>
+  <button on:click={putTextOnClipboard(`alias durl='curl -H "Authorization: Bearer ${token}"'`)}>
+    durl
+  </button>
 {/await}
