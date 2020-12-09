@@ -13,20 +13,22 @@
     display: flex;
     flex-direction: row;
     justify-content: space-between;
-    align-items:center;
+    align-items:flex-start;
   }
 
   .leftitems{
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
-    align-items:center;
+    align-items:flex-start;
+    padding-top: 7px;
   }
   .rightitems{
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
-    align-items:center;
+    align-items:flex-start;
+    padding-top: 7px;
   }
   .avatar{
     border-radius: 50%;
@@ -41,7 +43,7 @@
     padding: 0px 10px 0px 8px;
   }
 
-  a.item {
+  .item {
     color:white;
     font-size: 1.5rem;
     text-decoration: none;
@@ -49,6 +51,24 @@
     cursor: pointer;
   }
   
+  .dd{
+    background-color: #0b1736;
+    z-index: 99;
+  }
+
+  .dd p{
+    display:contents
+    }
+
+  .dd a.item{
+    display:none
+  }
+  .dd:hover a.item{
+    display:block;
+    font-size: 1.2rem;
+  }
+
+
   .usr{
     padding: 0px 10px 0px 8px;
   }
@@ -60,7 +80,13 @@
     <a class = item href="/user">User</a>
     <a class = item href="/admin">Admin</a>
     <a class = item href="/demo">Demo</a>
-    <a class = item href="/chartbox">Charts</a>
+    <div class = dd>
+      <p class = item>Charts</p>
+      <a class = item href="/chartbox">Waterfall</a>
+      <!-- <a class = item href="/chartbox2">Chart 2</a> -->
+      <a class = item href="/chartbox3">Polagraph</a>
+    </div>
+
   </div>
   <div class = rightitems>
     <div class=usr>

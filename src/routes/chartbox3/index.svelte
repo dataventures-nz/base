@@ -7,7 +7,7 @@ import default_layerlist from "./field_to_layer.json"
 import DatePicker from '$components/datepicker/DatePicker.svelte';
 import {query} from '$components/api.mjs'
 import ChartPrinter from '$components/charts/ChartPrinter.svelte'
-
+import { onDestroy } from 'svelte';
 let filename = "polargraph"
 let datefield = "time"
 let table = "hourly_materialised"
@@ -15,13 +15,12 @@ let startDate = new Date(2020,3,1)
 let endDate = new Date(2020,5,1)
 let layerlist = default_layerlist
 let allowedlayers = ["sa2_2018_code"]
-let match
 let matches
 let currentlayer = 0
 let selection = []
 let dbfield = ""
-let stroke = "black"
 
+console.log("I LIVVVVVVVEEEEEEE!", selection)
 
 function make_match(selection,dbfield,datefield,startDate,endDate){
   let newmatch = {}
@@ -52,7 +51,7 @@ function clean(data){
   return data
 }
 
-let plotRadius = 300
+let plotRadius = 350
 
 let options ={
   plotRadius,
@@ -68,16 +67,27 @@ let options ={
   }
 }
 
-$: dbfield = layerlist[currentlayer].db.field
-$: selection = layerlist[currentlayer].map.selection
-$: match = make_match(selection,dbfield,datefield,startDate,endDate)
-$: matches = selection.map(s=> make_match(s,dbfield,datefield,startDate,endDate))
-$: console.log(selection,matches,dataarrays)
+let dataarrays = {}
 
-let dataarrays
+function addtodataarrays(selection){
+  const match = make_match([selection],dbfield,datefield,startDate,endDate)
+  const data = query("population",table,match).then(clean)
+  return {selection,data,color:"#" + Math.floor(Math.random()*16777215).toString(16)}
+}
+
+$: dbfield = layerlist[currentlayer].db.field
+$: if (selection){
+  console.log("1",selection)
+  selection = JSON.parse(JSON.stringify(layerlist[currentlayer].map.selection))
+  console.log("2",selection)
+  let newdataarrays = {} 
+  selection.map(function(s){newdataarrays[s.name]=dataarrays[s.name]||addtodataarrays(s)})
+  dataarrays = newdataarrays
+}
+
+
 let svg
 let width
-function plot(){dataarrays = matches.map(match=>query("population",table,match).then(clean))}
 let chartdiv
 $: if (chartdiv){width=(chartdiv.getBoundingClientRect().width)-12}
 
@@ -110,17 +120,12 @@ $: if (chartdiv){width=(chartdiv.getBoundingClientRect().width)-12}
     flex-wrap:wrap
   }
 
-  #numbers input{
-    width:17%
-    }
-
 </style>
 
 <section class = "container-fluid select-wrapper">
  	<div class="row">
    	<div class="col-md-5">
       <div class=box>
-        <!-- <Clear clearfn = {cleardateselection}></Clear> -->
         <div class = "columns select-wrapper">
           <div class = column>
             <p> Filter by date</p>
@@ -129,64 +134,41 @@ $: if (chartdiv){width=(chartdiv.getBoundingClientRect().width)-12}
                 <DatePicker bind:selected = {startDate} isAllowed={(date)=>date<=endDate}/>
                 <DatePicker bind:selected = {endDate} isAllowed={(date)=>date>=startDate}/>
               </div>
-              <div>
-                <button on:click={plot}> Plot </button>
-              </div>
             </div>
-          </div>
-        </div>
-        <div class = "columns select-wrapper">
-          <div class = column>
           </div>
         </div>
       </div>
       <div class=box>
         <p>Select an area</p>
-        <div>
           <QueryMap height = 700 selectMode={xor_only} {allowedlayers} bind:layerlist currentlayer={0} ></QueryMap>
-        </div>
       </div>
 		</div>
    	<div class="col-md-7">
       <div class="box">
-        <div class = "flex" id="numbers">
-          <!-- <input type="number" step = 0.05 min=0.05 max=0.95 bind:value={x_position} />
-          <input type="number" step = 0.05 min = -1 max =1 bind:value={y_position} /> -->
-          <!-- <input type="number" step = 0.05 min=0.05 max=1 bind:value={plotwidth} />
-          <input type="number" step = 0.05 bind:value={brokenaxis} />
-          <input type="number" step = 0.05 min = 0.05 max = 1 bind:value={opacity} /> -->
-        </div>
-        <div class = "flex">
-          <!-- <ColorPicker bind:toggle={closed} bind:color={stroke} label=Closed/> -->
-          <!--{#if closed}
-            <ColorPicker bind:toggle={filled} bind:color={fill} label=Filled/>
-          {/if}
-          <ColorPicker bind:toggle={hasbackground} bind:color={background} label=Background/> 
-         -->
-         
-          <div class = flex style = "padding:5px">
-            <label for="filename">Stroke</label>
-            <input type="color" bind:value={stroke}/>
-            <label for="filename">Filename</label>
-            <input type="text" placeholder ="polargraph" bind:value={filename} />
-          </div> 
+        <div class = flex style = "padding:5px">         
+          <label for="filename">Filename</label>
+          <input type="text" placeholder ="polargraph" bind:value={filename} />
+          <ChartPrinter filename={filename} svg={svg} />
         </div>
       </div>
       <div class="row box">
         <div class="col-md-9" bind:this={chartdiv}>
           <PolarGraph  bind:svg={svg} {...options}>
             {#if dataarrays}
-              {#each dataarrays as dat,i}
-                {#await dat}
-                {:then d} 
-                  <PolarTrace data = {d} str={stroke}></PolarTrace>
+              {#each Object.values(dataarrays) as dataarray,i}
+                {#await dataarray.data then d} 
+                  <PolarTrace data = {d} bind:str={dataarray.color}></PolarTrace>
                 {/await}
               {/each}   
             {/if}
           </PolarGraph>
         </div>
         <div class="col-md-3">
-          <ChartPrinter filename={filename} svg={svg} />
+          {#each Object.values(dataarrays) as dataarray,i}
+            <label for="filename">{dataarray.selection.name}</label>
+            <input type="color" bind:value={dataarray.color}/>
+          {/each}
+          
         </div>
       </div>
 		</div>

@@ -11,7 +11,7 @@
 	export let options ={};
 
   // onMount(() => console.log(`MapLayer Mounted ${id}`))
-  //onDestroy(() => map.removeLayer(id))
+  onDestroy(() => map.removeLayer(id))
 
 // layout properties
 	export let visible = true;
