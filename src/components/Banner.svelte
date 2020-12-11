@@ -85,8 +85,8 @@
       <a class = item href="/chartbox">Waterfall</a>
       <!-- <a class = item href="/chartbox2">Chart 2</a> -->
       <a class = item href="/chartbox3">Polagraph</a>
+      <a class = item href="/linegraph">Simple Line</a>
     </div>
-
   </div>
   <div class = rightitems>
     <div class=usr>

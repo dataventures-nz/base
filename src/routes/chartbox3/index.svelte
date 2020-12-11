@@ -1,6 +1,6 @@
 <script>
-import PolarGraph from '$components/charts/PolarGraph.svelte'
-import PolarTrace from '$components/charts/PolarTrace.svelte'
+import PolarGraph from '$components/charts/polargraph/PolarGraph.svelte'
+import PolarTrace from '$components/charts/polargraph/PolarTrace.svelte'
 import { xor_only } from '$components/map/select_modes.mjs'
 import QueryMap from './QueryMap.svelte'
 import default_layerlist from "./field_to_layer.json"
@@ -15,12 +15,9 @@ let startDate = new Date(2020,3,1)
 let endDate = new Date(2020,5,1)
 let layerlist = default_layerlist
 let allowedlayers = ["sa2_2018_code"]
-let matches
 let currentlayer = 0
 let selection = []
 let dbfield = ""
-
-console.log("I LIVVVVVVVEEEEEEE!", selection)
 
 function make_match(selection,dbfield,datefield,startDate,endDate){
   let newmatch = {}
@@ -77,9 +74,7 @@ function addtodataarrays(selection){
 
 $: dbfield = layerlist[currentlayer].db.field
 $: if (selection){
-  console.log("1",selection)
   selection = JSON.parse(JSON.stringify(layerlist[currentlayer].map.selection))
-  console.log("2",selection)
   let newdataarrays = {} 
   selection.map(function(s){newdataarrays[s.name]=dataarrays[s.name]||addtodataarrays(s)})
   dataarrays = newdataarrays

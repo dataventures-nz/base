@@ -1,5 +1,5 @@
 <script>
-	import { onMount, setContext } from 'svelte'
+	import { onMount, setContext, onDestroy } from 'svelte'
 	import { createEventDispatcher } from 'svelte'
   // import mapboxgl from './mapbox-gl.js'
 
@@ -10,9 +10,11 @@
 	export let zoom
 	export let minZoom
 	export let style
-	export let map
+	export let map = undefined
 	let container
   let maploaded
+
+	onDestroy(() => { if (map) map.remove() })
 
 	setContext("map", {
     getMap: () => map
@@ -30,7 +32,6 @@
 		map.on("load", () => {maploaded = true})
 		dispatch('mapready', {map})
 		return () => {
-      console.log(map.getStyle())
       // need to record which layers and sources are added.
       // map.eachLayer((layer) => map.removeLayer(layer))
       // map.eachSource((source) => map.removeSource(source))

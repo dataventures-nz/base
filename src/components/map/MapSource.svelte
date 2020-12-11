@@ -14,7 +14,7 @@
 	maploaded=true
 
   // onMount(() => console.log(`MapSource Mounted ${name}`))
-  onDestroy(() => map.removeSource(name))
+  // onDestroy(() => map.removeSource(name))
 
 
 </script>
