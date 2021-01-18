@@ -1,5 +1,5 @@
 import {tokenPromise} from './security.mjs'
-import urls from '../../src copy/components/urls.json'
+import urls from './urls.json'
 import {csv} from 'd3-fetch'
 import bson from 'bson'
 
