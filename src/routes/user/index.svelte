@@ -1,18 +1,17 @@
 <script>
-  import * as security from '$components/security.mjs'
-  const {userPromise, tokenPromise} = security
+  import {userPromise, tokenPromise} from '$components/security.mjs'
   const putTextOnClipboard = text => navigator.clipboard.writeText(text)
 </script>
 
-{#await userPromise}
-Loading user
+{#await userPromise()}
+  Loading user
 {:then user}
-{JSON.stringify(user)}
+  Check..... {JSON.stringify(user)}...
 {/await}
 <br>
 <br>
 <br>
-{#await tokenPromise}
+{#await tokenPromise()}
   Loading token
 {:then token}
   alias durl='curl -H "Authorization: Bearer {token}"'<br>

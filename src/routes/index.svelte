@@ -1,19 +1,10 @@
-<style lang='scss'>
-	div {
-		h1 {
-			color:orange
-		}
-	}
+<script>
+	import {userPromise} from "$components/security.mjs";
+</script>
 
-	h1 {
-		color:green
-	}
-</style>
-
-<main>
-	<div class="testything">
-		<h1>Hello world2!</h1>
-	</div>
-	<h1>hello there</h1>
-</main>
+{#await userPromise()}
+	loading user
+{:then user}
+	hi {JSON.stringify(user)}	
+{/await}
 
