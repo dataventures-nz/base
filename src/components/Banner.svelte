@@ -1,8 +1,5 @@
 <script>
-  import * as security from './security.mjs'
-  // import {auth0Promise, logout} from './security.mjs'
-  const {auth0Promise, logout} = security
-  const userPromise = auth0Promise.then(auth0 => auth0.getUser())
+  import {logout, userPromise} from './security.mjs'
 </script>
 
 <style>
@@ -16,30 +13,32 @@
     align-items:flex-start;
   }
 
-  .leftitems{
+  .leftitems {
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
     align-items:flex-start;
     padding-top: 7px;
   }
-  .rightitems{
+
+  .rightitems {
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
     align-items:flex-start;
     padding-top: 7px;
   }
-  .avatar{
+
+  .avatar {
     border-radius: 50%;
     height: 1.8rem;
   }
 
-  img{
+  img {
     height:1.5rem; 
   }
 
-  .logo{
+  .logo {
     padding: 0px 10px 0px 8px;
   }
 
@@ -51,6 +50,7 @@
     cursor: pointer;
   }
   
+
   .dd{
     background-color: #0b1736;
     z-index: 99;
@@ -72,8 +72,8 @@
   .usr{
     padding: 0px 10px 0px 8px;
   }
-
 </style>
+
 <nav>
   <div class="leftitems">
     <a class="logo" href="/"><img src="svg/DV-logo-Horizontal-reverse.svg" ></a>
@@ -89,12 +89,12 @@
     </div>
   </div>
   <div class = rightitems>
-    <div class=usr>
-      {#await userPromise}
-        <img src="/svg/profile-icon.svg" alt="log out" class="avatar">
-      {:then user}
-        <img src={user.picture} on:click={logout} alt="log out" class="avatar">
-      {/await}
+    <div class='usr'>
+        {#await userPromise()}
+          <img src='/svg/profile-icon.svg' alt='log out' class='avatar'>
+        {:then user}
+          <img src={user.picture} on:click={logout} alt='log out' class='avatar'>
+        {/await}
     </div>
   </div>
 </nav>

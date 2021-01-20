@@ -1,41 +1,17 @@
-# create-svelte
+# DV Base App
 
-Everything you need to build a Svelte project, powered by [`create-svelte`](https://github.com/sveltejs/kit/tree/master/packages/create-svelte);
+This is a the default app to talk to the DV Data Service.
+It is written in Svelte@next.
+It uses Auth0 to authenticate, and the DV Data Service to authorise the user.
 
-## Creating a project
+It isn't particularly complex, and should be pretty easy to just dive in and go for it - it is MIT licenced, so, feel free to fork / swipe code from / make pull requests etc.
 
-If you're seeing this, you've probably already done this step. Congrats!
-
-```bash
-# create a new project in the current directory
-npm init svelte@next
-
-# create a new project in my-app
-npm init svelte@next my-app
-```
-
-> Note: the `@next` is temporary
-
+@blairn maintains a simplified version, without any DV specific code. So if you are just grabbing it as a shell project, use that one. This project is forked from that one, if you are looking for it.
 
 ## Developing
 
-Once you've created a project and installed dependencies with `npm install` (or `pnpm install` or `yarn`), start a development server:
+`npm install`
 
 ```bash
 npm run dev
 
-# or start the server and open the app in a new browser tab
-npm run dev -- --open
-```
-
-
-## Building
-
-Svelte apps are built with *adapters*, which optimise your project for deployment to different environments, like [Begin](https://begin.com), [Netlify](https://www.netlify.com), [Vercel](https://vercel.com) and so on. (You can also create your own adapter — instructions TODO.)
-
-By default, `npm run build` will generate a Node app that you can run with `node build`. To use a different adapter, install it and update your `svelte.config.js` accordingly. The following official adapters are available:
-
-* [@sveltejs/adapter-node](https://github.com/sveltejs/kit/tree/master/packages/adapter-node)
-* [@sveltejs/adapter-static](https://github.com/sveltejs/kit/tree/master/packages/adapter-static)
-* [@sveltejs/adapter-netlify](https://github.com/sveltejs/kit/tree/master/packages/adapter-netlify)
-* ...more soon
