@@ -8,16 +8,33 @@
   export let margin = 30
   export let xextent = false
   export let yextent = false
+  export let xtime = false
+  export let ytime = false
+  export let intercepts = "zero" // "bottom_left" or [x,y] 
 
-  let xaxis, yaxis
-
-  let xScale = createScale()
+  let xaxis, yaxis, x0,y0
+  
+  let xScale = xtime ? createScale(d3.scaleTime()) : createScale()
   xScale.setRange([margin,width-margin])
-  let yScale = createScale()
+  let yScale = ytime ? createScale(d3.scaleTime()) : createScale()
   yScale.setRange([height-margin,margin])
 
-  $: x0 = $xScale(0)
-  $: y0 = $yScale(0)
+
+  $: {
+    if (intercepts == "zero"){
+      console.log("case1")
+        x0 = $xScale(0)
+        y0 = $yScale(0)
+    } else if (intercepts.length == 2){
+        console.log("case2",intercepts)
+        x0 = $xScale(intercepts[0])
+        y0 = $yScale(intercepts[1])
+    } else {
+      console.log("case3")
+        x0 = margin
+        y0 = height-margin
+    } 
+  }
 
   $: xAxis = d3.axisBottom($xScale)
   $: if(xaxis) d3.select(xaxis).call(xAxis)

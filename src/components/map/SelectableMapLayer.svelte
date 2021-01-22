@@ -86,7 +86,7 @@
   }
 </script>
 <style>
-  :global div.mapboxgl-popup-content {
+  :global(div.mapboxgl-popup-content) {
     display: flex;
     flex-direction:column;
     align-items: center;
@@ -94,7 +94,7 @@
     min-width: 100px;
   }
 
-  :global div.mapboxgl-popup-content p {
+  :global(div.mapboxgl-popup-content p) {
      margin:3px 0px 3px 0px;
     }
 

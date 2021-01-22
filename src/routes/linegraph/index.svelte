@@ -49,22 +49,6 @@ function clean(data){
   return data
 }
 
-let plotRadius = 350
-
-let options ={
-  plotRadius,
-  labelAccessor : d=>d.time,
-  thetaMax : 7,
-  showPoints:false,
-  axisTitles: new Array(7).fill(""),
-  arcOptions:{
-    labels:new Array(14).fill(""),
-    inner:0.85*plotRadius,
-    outer:0.9*plotRadius,
-    offset:-0.5
-  }
-}
-
 let dataarrays = {}
 
 function addtodataarrays(selection){
@@ -87,6 +71,9 @@ let svg
 let width
 let chartdiv
 $: if (chartdiv){width=(chartdiv.getBoundingClientRect().width)-12}
+
+const i1 = [0.5,0.8]
+const i2="zero"
 
 </script>
 
@@ -150,11 +137,24 @@ $: if (chartdiv){width=(chartdiv.getBoundingClientRect().width)-12}
       </div>
       <div class="row box">
         <div class="col-md-12" bind:this={chartdiv}>
-          <LineGraph  yextent = {[-1,1]}>
+          <LineGraph  yextent = {[-2,2]} intercepts = {i2}>
             <LineTrace stroke="red" data ={[{x:-3,y:0},{x:3,y:1}]}></LineTrace>
             <LineTrace data ={[{x:0.0,y:-0.5},{x:5,y:3}]}></LineTrace>
             <LineTrace data ={[{x:0,y:0},{x:7,y:2}]}></LineTrace>
             <LineTrace data ={data2} ></LineTrace>
+          </LineGraph>
+        </div>
+      </div>
+      <div class="row box">
+        <div class="col-md-12">
+          <LineGraph xtime={true} width = {800}>
+            {#if dataarrays}
+              {#each Object.values(dataarrays) as dataarray,i}
+                {#await dataarray.data then d} 
+                  <LineTrace data = {d} xaccessor={d=>d.time} yaccessor={d=>+d.count}></LineTrace>
+                {/await}
+              {/each}   
+            {/if}
           </LineGraph>
         </div>
       </div>

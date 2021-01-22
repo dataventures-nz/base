@@ -7,8 +7,6 @@
   export let xaccessor = d => d.x
   export let yaccessor = d => d.y
   export let id = Math.random()
-  // const {set_xExtents,set_yExtents, clear_Extents} = getContext("setExtents")
-
 
   $: if (stroke==undefined) {
     stroke = "#" + Math.floor(Math.random()*0xefffff + 0x100000).toString(16)
