@@ -74,6 +74,7 @@ $: if (chartdiv){width=(chartdiv.getBoundingClientRect().width)-12}
 
 const i1 = [0.5,0.8]
 const i2="zero"
+const i3 = [new Date(2020,3,1),0]
 
 </script>
 
@@ -137,7 +138,7 @@ const i2="zero"
       </div>
       <div class="row box">
         <div class="col-md-12" bind:this={chartdiv}>
-          <LineGraph  yextent = {[-2,2]} intercepts = {i2}>
+          <LineGraph  yextent = {[-2,2]} intercepts = {"zero"}>
             <LineTrace stroke="red" data ={[{x:-3,y:0},{x:3,y:1}]}></LineTrace>
             <LineTrace data ={[{x:0.0,y:-0.5},{x:5,y:3}]}></LineTrace>
             <LineTrace data ={[{x:0,y:0},{x:7,y:2}]}></LineTrace>
@@ -147,7 +148,7 @@ const i2="zero"
       </div>
       <div class="row box">
         <div class="col-md-12">
-          <LineGraph xtime={true} width = {800}>
+          <LineGraph xtime={true} width = {800} ysuppressZero={false} intercepts = {"bottom_left"}>
             {#if dataarrays}
               {#each Object.values(dataarrays) as dataarray,i}
                 {#await dataarray.data then d} 
