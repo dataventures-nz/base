@@ -58,7 +58,7 @@
     <a class='logo' href='/'><img alt='DV logo' src='svg/DV-logo-Horizontal-reverse.svg' ></a>
     <a class = item href='/user'>User</a>
     <a class = item href='/admin'>Admin</a>
-    <a class = item href='/demo'>Demo</a>
+    <a class = item href='/data'>Data</a>
   </div>
   <div class = rightitems>
     <div class='usr'>
