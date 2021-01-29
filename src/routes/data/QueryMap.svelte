@@ -52,12 +52,14 @@
     return reverse_accessor
   }
 
-  $:layerlist[currentlayer].ui.visible = true
+  $:{
+    layerlist.map(d=>d.ui.visible = false )
+    layerlist[currentlayer].ui.visible = true
+  }
 
   $: if(allowedlayers && !allowedlayers.find(x=> x == layerlist[currentlayer].db.field)){
     currentlayer=0
     layerlist[currentlayer].ui.visible = true
-    console.log(currentlayer,layerlist[currentlayer])
   }
   
 </script>

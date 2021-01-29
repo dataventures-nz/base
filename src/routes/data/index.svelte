@@ -17,13 +17,13 @@
 
   let datefields = []
   let datefield
-  let table = {}
+  let collection
   let startDate
   let endDate
   let dateformat ="#YYYY-MM-DD 00:00:00#"
   let deselect_datefield = true
   let layerlist = default_layerlist
-  let allowedlayers = []
+  let allowedlayers = ["sa2_2018_code","TALB2020_code","region_2018_code"]
   let filename = "mydata.csv"
   let startdatedata = ""
   let enddatedata = ""
@@ -33,37 +33,19 @@
   let dbfield = ""
   let r
   let option
+  let table = ""
   let copytext
   let tokentext = "tokentext"
-  let collections
   
-  
+  $: console.log({currentlayer})
   // when we get schema written, this will be pulled from schema cache.
-  async function tablechanged(){
-    const tablespec = table.endpoint.tables.find(d=>table.table===d.table)
+  async function collectionChanged(){
   
-    if (tablespec){ // from file, rather than from server
-      datefields = tablespec.datefields
-      dateformat = tablespec.dateformat
-      datefield = ""
-      return
-    }
+  // set layers, date fields and format into global space  
+    // allowedlayers = _.intersection(allowedlayers,layerlist.map(d=>d.db.field))
+    // allowedlayers = ["sa2_2018_code","TALB2020_code","RTO_code","region_2018_code"]
   
-    const _meta = d3.json(table.endpoint.endpoint + "/meta/" + table.table, {
-      method: 'GET',
-      headers: {
-        'Access-Control-Allow-Headers':['Authorization'],
-        'Authorization': "Bearer "+ await tokenPromise
-      }
-    })
-  
-    const meta = await _meta
-  
-    allowedlayers = Object.keys(meta.fields)
-    allowedlayers = _.intersection(allowedlayers,layerlist.map(d=>d.db.field))
-  
-    const fields = _.invertBy(meta.fields)
-    datefields = fields.date || []
+    datefields = ["time","date"]
     dateformat ="#YYYY-MM-DD 00:00:00#"
     datefield = ""
   }
@@ -119,7 +101,7 @@
   option = copyoptions[0]
   
   async function token(){
-    tokentext = await tokenPromise 
+    tokentext = await tokenPromise() 
   }
   
   token()
@@ -139,9 +121,9 @@
   }
   
   function startDownload() {
-    const url = table.endpoint && table.endpoint.endpoint
-    const service = table.table
-    download(url, service, match, filename)
+    // const url = table.endpoint && table.endpoint.endpoint
+    // const service = table.table
+    // download(url, service, match, filename)
   }
   
   $: startDate && startDate.on("data",()=>startdatedata=startDate.getDateString(dateformat))
@@ -150,7 +132,6 @@
   $: selection = layerlist[currentlayer].map.selection
   $: match = make_match(selection,dbfield,datefield,startdatedata,enddatedata)
   $: copytext = option.copytext(match,table,r)
-  
   
   </script>
   
@@ -209,14 +190,23 @@
                     subgroupaccessor = {listCollections}
                     valueaccessor = {d=>d}
                     labelaccessor = {d=>d.collection} 
-                    on:change={tablechanged} 
-                    bind:table={table}/>
+                    onChange={collectionChanged} 
+                    bind:value={collection}/>
                 {/await}
           </div>
         </div>
         <div class=box>
           <Clear clearfn = {clearmapselection}></Clear>
           <p >Optional: Select specific areas</p>
+            <div style='margin-bottom:0;height:42px'>
+              <Tabs>
+                {#each layerlist as layer,i}
+                  {#if allowedlayers.find(d=>d==layer.db.field)}
+                    <Tab label={layer.map.name} index={i} onClick={()=>currentlayer=i} ></Tab>
+                  {/if}
+                {/each}
+              </Tabs>
+          </div>
           <div>
             <QueryMap height = 650 selectMode={xor_only} {allowedlayers} bind:layerlist bind:currentlayer ></QueryMap>
           </div>
