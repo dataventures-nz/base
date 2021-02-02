@@ -13,7 +13,7 @@
   import Tabs from '../../components/tabs/Tabs.svelte';
   import Tab from '../../components/tabs/Tab.svelte';
   import Clear from '../../components/Clear.svelte';
-  import {query,get_api,listDatabases,listCollections} from '$components/api.mjs'
+  import {query,get_api,api_url,listDatabases,listCollections, normalise} from '$components/api.mjs'
 
   let datefields = []
   let datefield
@@ -32,12 +32,11 @@
   let selection = []
   let dbfield = ""
   let r
-  let option
+  let option = undefined
   let table = ""
   let copytext
   let tokentext = "tokentext"
   
-  $: console.log({currentlayer})
   // when we get schema written, this will be pulled from schema cache.
   async function collectionChanged(){
   
@@ -63,7 +62,7 @@
       if (enddatedata) {newmatch[datefield].$lt = enddatedata}  
     }
   
-    return newmatch
+    return normalise(newmatch)
   }
   
   
@@ -72,33 +71,28 @@
   let copyoptions = [
     {
       label:"download",
-      fn:function(i){option=copyoptions[i]},
       copytext:()=>null
     },
     {
       label:"mongo query",
-      fn:function(i){option=copyoptions[i]},
       copytext:(match)=>JSON.stringify(match)
     },
     {
       label:"curl your query",
-      fn:function(i){option=copyoptions[i]},
-      copytext:(match,table)=>{
-        return curlhead+tokentext+`" -d '`+JSON.stringify(match)+"' "+(table.endpoint && table.endpoint.endpoint)+"/api/"+table.table 
+      copytext:(match,collection)=>{
+        return curlhead+tokentext+`" -d '`+JSON.stringify(match)+"' "+api_url(collection.db+"/"+collection.collection)
       }
     },
     {
       label:"R script",
-      fn:function(i){option=copyoptions[i]},
       copytext:(match,table,r)=> r?r.textContent:null
     },
     {
       label:"just your token",
-      fn:function(i){option=copyoptions[i]},
       copytext:()=>tokentext
     }
   ]
-  option = copyoptions[0]
+  option = copyoptions[0] 
   
   async function token(){
     tokentext = await tokenPromise() 
@@ -112,25 +106,19 @@
   
   const cleardateselection = function(){
     datefield = ""
-    startDate.setValue(null)
-    endDate.setValue(null)
-    startDate.associated.value = null
-    endDate.associated.value = null
-    startdatedata = null
-    enddatedata = null
+    startDate = null
+    endDate = null
   }
   
   function startDownload() {
-    // const url = table.endpoint && table.endpoint.endpoint
-    // const service = table.table
-    // download(url, service, match, filename)
+    console.log("here!")
+    const url = api_url(collection.db+"/"+collection.collection)
+    download(url, match, filename)
   }
-  
-  $: startDate && startDate.on("data",()=>startdatedata=startDate.getDateString(dateformat))
-  $: endDate && endDate.on("data",()=>enddatedata = endDate.getDateString(dateformat))
+
   $: dbfield = layerlist[currentlayer].db.field
   $: selection = layerlist[currentlayer].map.selection
-  $: match = make_match(selection,dbfield,datefield,startdatedata,enddatedata)
+  $: match = make_match(selection,dbfield,datefield,startDate,endDate)
   $: copytext = option.copytext(match,table,r)
   
   </script>
@@ -151,7 +139,7 @@
     .pseudopre{
       word-break: break-all;
       overflow-wrap: break-word;
-      width:100%;
+      width:90%;
       background-color: #f5f5f5;
       color: #4a4a4a;
       font-family: monospace;
@@ -176,6 +164,7 @@
     }
   
   </style>
+
   <section class = "container select-wrapper">
     <div class="row">
       <div class="col-md-5">
@@ -230,12 +219,12 @@
           </div>
           <div class = "columns select-wrapper">
             <div class = column>
-              <Datepicker bind:datepicker={startDate}
+              <Datepicker bind:selected={startDate}
               placeholder = "From Date (Inclusive)"
               />
             </div>
             <div class = column>
-              <Datepicker bind:datepicker={endDate}
+              <Datepicker bind:selected={endDate}
               placeholder = "To Date"
               />
             </div>
@@ -247,16 +236,16 @@
               <div style='margin-bottom:0;height:42px'>
                   <Tabs>
                     {#each copyoptions as {label,fn},i}
-                      <Tab {label} index={i} onClick={()=>fn(i)} ></Tab>
+                      <Tab {label} index={i} onClick={() => option = copyoptions[i]} ></Tab>
                     {/each}
                   </Tabs>
               </div>
               <CopyBox text = {copytext}>
                 {#if option.label == "download"}
                   <input type="text" placeholder="filename.csv" bind:value={filename}/>
-                  <button type="button" class="btn-secondary download" disabled={!table.table} on:click={startDownload}>
+                  <button type="button" class="btn-secondary download" disabled={false} on:click={startDownload}>
                     Download
-                    <span><img alt="" class='icon-download' src='../svg/download-icon.svg'/></span>
+                    <!-- <span><img alt="" class='icon-download' src='../svg/download-icon.svg'/></span> -->
                   </button>
                 {:else if option.label == "mongo query"}
                   <pre>{JSON.stringify(match, undefined, 2)}</pre>
@@ -267,7 +256,7 @@
                       <span class="hoverhide" >&lt your token &gt"</span>
                       <span class="hovershow">{tokentext}"</span>
                     </span>
-                      -d '{JSON.stringify(match)}' {table.endpoint && table.endpoint.endpoint}/api/{table.table}
+                      -d '{JSON.stringify(match)}' {api_url(collection.db+"/"+collection.collection)}
                   </div>
                 {:else if option.label == "R script"}
   <pre id="R" bind:this={r}>
@@ -275,7 +264,7 @@
   library(httr)
   
   mydataframe &lt;- POST(
-      url = "{table.endpoint && table.endpoint.endpoint+"/api/"+table.table}",
+      url = "{api_url(collection.db+"/"+collection.collection)}",
       add_headers(Authorization = "Bearer {tokentext}"  
       body = '{JSON.stringify(match)}',
       content_type_json()
@@ -284,7 +273,7 @@
     read.csv(text=.)
   </pre>
                 {:else if option.label == "just your token"}
-                  <pre>{tokentext}</pre>
+                  <div class = pseudopre >{tokentext}</div>
                 {/if}
               </CopyBox>
             </div>

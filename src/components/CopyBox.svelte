@@ -9,6 +9,7 @@
 		console.log("copied")
 			navigator.clipboard.writeText(text)
 	}
+$: console.log(w)
 
 </script> 
 

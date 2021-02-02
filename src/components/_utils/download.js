@@ -7,17 +7,18 @@ async function options(query) {
     method: 'POST',
     headers: {
       'Access-Control-Allow-Headers':['Authorization'],
-      'Authorization': "Bearer "+ await tokenPromise,
-      'Content-Type': 'application/json'
+      'Authorization': "Bearer "+ await tokenPromise(),
+      'Content-Type': 'application/json',
+      'Accept':'text/csv'
     },
     body: JSON.stringify(query)
   }
 }
 
-export async function download(url, service, query, filename, listeners) {
-  console.log(url,service,query)
+export async function download(url, query, filename, listeners) {
+  console.log(url,query)
   let { onUpdate, onEnd, onCancelled, onDownloaded } = listeners || {};
-  fetch(url +"/api/" + service, await options(query)).then(res => {
+  fetch(url, await options(query)).then(res => {
     const reader = res.body.getReader()
     function readme(accumulated,count){
       reader.read().then(async (x) => {
