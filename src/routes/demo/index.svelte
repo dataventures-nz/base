@@ -1,6 +1,6 @@
 <script>
-  import {query} from '$components/api.mjs'
-  let start = new Date(2021,0,1)
+  import {query,listDatabases} from '$components/api.mjs'
+  let start = new Date(2021,1,1)
   console.log(start)
 </script>
 
@@ -8,4 +8,17 @@
   waiting....
 {:then results}
   {results.length}
+{/await}
+<br>
+<br>
+<br>
+<br>
+<br>
+
+{#await listDatabases()}
+  loading....  
+{:then databases}
+  {#each databases as database}
+  {database._id} - {database.type}<br>
+  {/each}
 {/await}

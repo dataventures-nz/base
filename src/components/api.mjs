@@ -22,11 +22,13 @@ export const api_url = (service) => `${serviceUrl}/api/${service}`
 export const admin_url = (service) => `${serviceUrl}/admin/${service}`
 export const query = (dbName, collectionName, q) => fetch_csv('POST', db_url(dbName,collectionName), q)
 
+
 export const get_api = (service) => fetch_json('GET', api_url(service))
 export const post_api = (service,q) => fetch_json('POST', api_url(service),q)
 
 export const listDatabases = () => get_api("/")
 export const listCollections = (db) => get_api(`/${db}`)
 export const listNodes = () => get_api(`/admin/${db}`)
+export const updateSchema = (node, schema) => fetch_json("PUT", admin_url('schema'), {node,schema})
 
 export const normalise = (q) => EJSON.serialize(q)

@@ -1,6 +1,8 @@
 <script>
   import {admin_url, fetch_json} from '$components/api.mjs'
   import NodeList from './NodeList.svelte'
+  import Schema from './Schema.svelte'
+
   const sortByName = (a,b) => a._id.localeCompare(b._id)
 
   let nodes = []
@@ -59,11 +61,9 @@
     {#if node}
       <h2><span class='{node.type} pill'>{node._id}</span></h2>
 
-      {#if node.type != 'collection'}
-        <h3>Parents</h3>
-        <NodeList source={false} items={parents} on:selectItem={e => node = e.detail}/>
-        (+)
-      {/if}
+      <h3>Parents</h3>
+      <NodeList source={false} items={parents} on:selectItem={e => node = e.detail}/>
+      (+)
 
       <h3>Children</h3>
       <NodeList source={false} items={children} on:selectItem={e => node = e.detail}/>
@@ -78,7 +78,10 @@
         <NodeList source={false} items={admins} on:selectItem={e => node = e.detail}/>
       {/if}
 
-
+      {#if node.type == 'collection'}
+      <h3>Schema</h3>
+      <Schema schema={JSON.stringify(node.schema)} node_id={node._id}/>
+      {/if}
       <h3>Permissions</h3>
       {#if node.org}
         Orgs nodes don't have permissions.
