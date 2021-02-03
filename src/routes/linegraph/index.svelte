@@ -1,6 +1,7 @@
 <script>
 import LineGraph from '$components/charts/linegraph/LineGraph.svelte'
 import LineTrace from '../../components/charts/linegraph/LineTrace.svelte'
+import StackedArea from '../../components/charts/linegraph/StackedArea.svelte'
 import { xor_only } from '$components/map/select_modes.mjs'
 import QueryMap from './QueryMap.svelte'
 import default_layerlist from "./field_to_layer.json"
@@ -33,8 +34,9 @@ function make_match(selection,dbfield,datefield,startDate,endDate){
     if (endDate) {newmatch[datefield].$lt = endDate}  
   }
 
-  const projection = {_id:false,time:true,count:true}
+  const projection = {_id:false,time:true,count:true,local:true,domestic:true,international:true,unknown:true}
   const pipeline = [{$match:newmatch},{$project:projection}]
+  // const pipeline = [{$match:newmatch}]
 
   return pipeline
 }
@@ -75,6 +77,29 @@ $: if (chartdiv){width=(chartdiv.getBoundingClientRect().width)-12}
 const i1 = [0.5,0.8]
 const i2="zero"
 const i3 = [new Date(2020,3,1),0]
+
+let layers = [
+    {
+      name:"y1",
+      accessor: d => +d.local,
+      style:{fill:"pink",stroke:"black","fill-opacity":0.5}
+    },
+    {
+      name:"y2",
+      accessor: d => +d.domestic,
+      style:{fill:"yellow",stroke:"yellow"}
+    },
+    {
+      name:"y2",
+      accessor: d => +d.international,
+      style:{fill:"#000","fill-opacity":0.1}
+    },
+    {
+      name:"y2",
+      accessor: d => +d.unknown,
+      style:{fill:"green",stroke:null}
+    }
+  ]
 
 </script>
 
@@ -155,6 +180,18 @@ const i3 = [new Date(2020,3,1),0]
                   <LineTrace data = {d} xaccessor={d=>d.time} yaccessor={d=>+d.count}></LineTrace>
                 {/await}
               {/each}   
+            {/if}
+          </LineGraph>
+        </div>
+      </div>
+      <div class="row box">
+        <div class="col-md-12">
+          <LineGraph xtime={true} width = {800} ysuppressZero={false} intercepts = {"bottom_left"}>
+            {#if Object.values(dataarrays)[0]}
+              {#await Object.values(dataarrays)[0].data then d}
+                <StackedArea data = {d} xaccessor={d=>d.time} {layers}></StackedArea>
+                <LineTrace data = {d} xaccessor={d=>d.time} yaccessor={d=>+d.domestic+(+d.unknown)} stroke={"black"}></LineTrace> 
+              {/await}
             {/if}
           </LineGraph>
         </div>

@@ -22,15 +22,12 @@
 
   $: {
     if (intercepts == "zero"){
-      console.log("case1")
         x0 = $xScale(0)
         y0 = $yScale(0)
     } else if (intercepts.length == 2){
-        console.log("case2",intercepts)
         x0 = $xScale(intercepts[0])
         y0 = $yScale(intercepts[1])
     } else {
-      console.log("case3")
         x0 = margin
         y0 = height-margin
     } 
