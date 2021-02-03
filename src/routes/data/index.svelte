@@ -38,8 +38,9 @@
   let tokentext = "tokentext"
   
   // when we get schema written, this will be pulled from schema cache.
-  async function collectionChanged(){
+  async function collectionChanged(collection){
   
+  console.log(collection)
   // set layers, date fields and format into global space  
     // allowedlayers = _.intersection(allowedlayers,layerlist.map(d=>d.db.field))
     // allowedlayers = ["sa2_2018_code","TALB2020_code","RTO_code","region_2018_code"]
@@ -49,6 +50,14 @@
     datefield = ""
   }
   
+  async function get_allowed_db(){
+    let collections = await listDatabases()
+    console.log(collections)
+    return collections
+  }
+
+   let databases = get_allowed_db()
+
   function make_match(selection,dbfield,datefield,startdatedata,enddatedata){
     let newmatch = {}
     if (dbfield && selection.length){
@@ -171,8 +180,8 @@
         <div class=box>
               <p>First choose a collection to query </p>
               <div class="select control is-fullwidth">
-                {#await listDatabases() then database}
-                  <GroupedDropdown 
+                {#await databases then db}
+                  <!-- <GroupedDropdown 
                     placeholder = {"Choose a collection"}
                     groups={database} 
                     groupaccessor={d=>d.name} 
@@ -180,7 +189,7 @@
                     valueaccessor = {d=>d}
                     labelaccessor = {d=>d.collection} 
                     onChange={collectionChanged} 
-                    bind:value={collection}/>
+                    bind:value={collection}/> -->
                 {/await}
           </div>
         </div>

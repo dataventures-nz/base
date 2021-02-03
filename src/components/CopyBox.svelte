@@ -9,20 +9,11 @@
 		console.log("copied")
 			navigator.clipboard.writeText(text)
 	}
-$: console.log(w)
+
 
 </script> 
 
 <style type="text/scss">
-  // pre {
-
-  //    white-space: pre-wrap;       /* css-3 */
-  //    white-space: -moz-pre-wrap;  /* Mozilla, since 1999 */
-  //    white-space: -pre-wrap;      /* Opera 4-6 */
-  //    white-space: -o-pre-wrap;    /* Opera 7 */
-  //    word-wrap: break-word;       /* Internet Explorer 5.5+ */
-  //    font-size:x-small;
-  // }
 
 	#outer{ 
     border:1px solid #dbdbdb;
