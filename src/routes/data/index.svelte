@@ -50,9 +50,22 @@
     datefield = ""
   }
   
+  function displayname(collection){
+    return collection.schema.db +"/"+collection.schema.collection 
+  }
+  function mappable_fields(collection){
+
+  }
+  function time_fields(collection){
+    
+  }
+
+
   async function get_allowed_db(){
     let collections = await listDatabases()
     console.log(collections)
+   
+
     return collections
   }
 
