@@ -37,10 +37,12 @@
   let copytext
   let tokentext = "tokentext"
   
+  $: console.log(collection)
+
   // when we get schema written, this will be pulled from schema cache.
   async function collectionChanged(collection){
   
-  console.log(collection)
+  // console.log(collection)
   // set layers, date fields and format into global space  
     // allowedlayers = _.intersection(allowedlayers,layerlist.map(d=>d.db.field))
     // allowedlayers = ["sa2_2018_code","TALB2020_code","RTO_code","region_2018_code"]
@@ -51,25 +53,45 @@
   }
   
   function displayname(collection){
-    return collection.schema.db +"/"+collection.schema.collection 
+    return collection.db +"/"+collection.collection 
   }
+  
   function mappable_fields(collection){
-
+    let maplayers = []
+    Object.entries(collection.schema.properties).map(d=>{
+      if(d[1].map){
+        maplayers.push({
+          db:{field:d[0]},
+          map:d[1].map,
+          ui:{visible:false,include:true}
+        })
+      }
+    })
+    return maplayers
   }
+
   function time_fields(collection){
-    
+    let timefields = []
+    Object.entries(collection.schema.properties).map(d=>{
+      if(d[1].bsonType == "date"){timefields.push(d[0])}
+    })
+    return timefields
   }
 
 
   async function get_allowed_db(){
     let collections = await listDatabases()
-    console.log(collections)
-   
-
-    return collections
+    console.log("test!!!" ,collections)
+    let value =  collections.map(d=>{
+        return {
+          displayName:displayname(d),
+          mappableFields:mappable_fields(d),
+          timeFields:time_fields(d)  
+        }
+      }
+    )
+    return value
   }
-
-   let databases = get_allowed_db()
 
   function make_match(selection,dbfield,datefield,startdatedata,enddatedata){
     let newmatch = {}
@@ -133,13 +155,12 @@
   }
   
   function startDownload() {
-    console.log("here!")
     const url = api_url(collection.db+"/"+collection.collection)
     download(url, match, filename)
   }
 
-  $: dbfield = layerlist[currentlayer].db.field
-  $: selection = layerlist[currentlayer].map.selection
+  // $: dbfield = collection.db.field
+  //$: selection = collection.map.selection
   $: match = make_match(selection,dbfield,datefield,startDate,endDate)
   $: copytext = option.copytext(match,table,r)
   
@@ -191,19 +212,16 @@
     <div class="row">
       <div class="col-md-5">
         <div class=box>
-              <p>First choose a collection to query </p>
-              <div class="select control is-fullwidth">
-                {#await databases then db}
-                  <!-- <GroupedDropdown 
-                    placeholder = {"Choose a collection"}
-                    groups={database} 
-                    groupaccessor={d=>d.name} 
-                    subgroupaccessor = {listCollections}
-                    valueaccessor = {d=>d}
-                    labelaccessor = {d=>d.collection} 
-                    onChange={collectionChanged} 
-                    bind:value={collection}/> -->
-                {/await}
+          <p>First choose a collection to query </p>
+          <div class="select control is-fullwidth">
+            {#await get_allowed_db() then dbs}
+              <select name="Choosecollection" bind:value = {collection} class="input">
+                <option selected disabled class="header" value="">Choose a Collection </option>
+                {#each dbs as db}
+                  <option class = "option" value={db}> {db.displayName} </option>
+                {/each}
+              </select>
+            {/await}
           </div>
         </div>
         <div class=box>
@@ -211,15 +229,20 @@
           <p >Optional: Select specific areas</p>
             <div style='margin-bottom:0;height:42px'>
               <Tabs>
-                {#each layerlist as layer,i}
-                  {#if allowedlayers.find(d=>d==layer.db.field)}
+                {#if collection}
+                  {#each collection.mappableFields as layer,i}
                     <Tab label={layer.map.name} index={i} onClick={()=>currentlayer=i} ></Tab>
-                  {/if}
-                {/each}
+                  {/each}
+                {/if}
               </Tabs>
-          </div>
+            </div>
           <div>
-            <QueryMap height = 650 selectMode={xor_only} {allowedlayers} bind:layerlist bind:currentlayer ></QueryMap>
+            <QueryMap 
+              height = 650 
+              selectMode={xor_only} 
+              layerlist={collection ? collection.mappableFields:[]} 
+              bind:currentlayer 
+            ></QueryMap>
           </div>
         </div>
       </div>

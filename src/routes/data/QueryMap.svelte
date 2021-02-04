@@ -8,9 +8,8 @@
   import {ctrl_click_adds} from '../../components/map/select_modes.js'
   import NavigationControl from '../../components/map/NavigationControl.svelte';
   export let selectMode = ctrl_click_adds
-  export let height = 500
+  export let height = 500  
   export let layerlist
-  export let allowedlayers
   export let currentlayer 
   let map
 
@@ -54,14 +53,10 @@
 
   $:{
     layerlist.map(d=>d.ui.visible = false )
-    layerlist[currentlayer].ui.visible = true
+    layerlist[currentlayer] && (layerlist[currentlayer].ui.visible = true)
+
   }
 
-  $: if(allowedlayers && !allowedlayers.find(x=> x == layerlist[currentlayer].db.field)){
-    currentlayer=0
-    layerlist[currentlayer].ui.visible = true
-  }
-  
 </script>
 
 <div style=height:{height}px >
