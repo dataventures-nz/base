@@ -6,7 +6,7 @@
   import {xor_only} from '../../components/map/select_modes.js'
   import QueryMap from './QueryMap.svelte'
   import {download} from '../../components/_utils/download.js'
-  import default_layerlist from "./field_to_layer.json"
+  // import default_layerlist from "./field_to_layer.json"
   import GroupedDropdown from '../../components/DropdownTree/GroupedDropdown.svelte';
   import Datepicker from '../../components/datepicker/DatePicker.svelte';
   import CopyBox from '../../components/CopyBox.svelte';
@@ -17,12 +17,12 @@
 
   let datefields = []
   let datefield
-  let collection
+  let collection //={mappableFields:[],db:""}
   let startDate
   let endDate
   let dateformat ="#YYYY-MM-DD 00:00:00#"
   let deselect_datefield = true
-  let layerlist = default_layerlist
+  let layerlist = []
   let allowedlayers = ["sa2_2018_code","TALB2020_code","region_2018_code"]
   let filename = "mydata.csv"
   let startdatedata = ""
@@ -38,19 +38,7 @@
   let tokentext = "tokentext"
   
   $: console.log(collection)
-
-  // when we get schema written, this will be pulled from schema cache.
-  async function collectionChanged(collection){
-  
-  // console.log(collection)
-  // set layers, date fields and format into global space  
-    // allowedlayers = _.intersection(allowedlayers,layerlist.map(d=>d.db.field))
-    // allowedlayers = ["sa2_2018_code","TALB2020_code","RTO_code","region_2018_code"]
-  
-    datefields = ["time","date"]
-    dateformat ="#YYYY-MM-DD 00:00:00#"
-    datefield = ""
-  }
+  $: collection && (layerlist = collection.mappableFields)
   
   function displayname(collection){
     return collection.db +"/"+collection.collection 
@@ -60,6 +48,7 @@
     let maplayers = []
     Object.entries(collection.schema.properties).map(d=>{
       if(d[1].map){
+        d[1].map.selection = []
         maplayers.push({
           db:{field:d[0]},
           map:d[1].map,
@@ -81,7 +70,6 @@
 
   async function get_allowed_db(){
     let collections = await listDatabases()
-    console.log("test!!!" ,collections)
     let value =  collections.map(d=>{
         return {
           displayName:displayname(d),
@@ -144,10 +132,16 @@
   
   token()
   
-  const clearmapselection = function(){
-    layerlist[currentlayer].map.selection = []
+  const tabclick = function(i){
+    collection.mappableFields[currentlayer].selection = selection
+    currentlayer=i
+    selection = collection.mappableFields[i].selection ? collection.mappableFields[i].selection : []
   }
-  
+
+  const clearmapselection = function(){
+    collection.mappableFields[currentlayer].map.selection = []
+  }
+
   const cleardateselection = function(){
     datefield = ""
     startDate = null
@@ -159,8 +153,8 @@
     download(url, match, filename)
   }
 
-  // $: dbfield = collection.db.field
-  //$: selection = collection.map.selection
+  $: console.log({collection,currentlayer,dbfield,selection})
+  $: if(collection){dbfield = collection.mappableFields[currentlayer].db.field}
   $: match = make_match(selection,dbfield,datefield,startDate,endDate)
   $: copytext = option.copytext(match,table,r)
   
@@ -231,7 +225,7 @@
               <Tabs>
                 {#if collection}
                   {#each collection.mappableFields as layer,i}
-                    <Tab label={layer.map.name} index={i} onClick={()=>currentlayer=i} ></Tab>
+                    <Tab label={layer.map.name} index={i} onClick={()=>tabclick(i)} ></Tab>
                   {/each}
                 {/if}
               </Tabs>
@@ -239,9 +233,10 @@
           <div>
             <QueryMap 
               height = 650 
-              selectMode={xor_only} 
-              layerlist={collection ? collection.mappableFields:[]} 
-              bind:currentlayer 
+              selectMode={xor_only}
+              layerlist =  {collection ? collection.mappableFields:[]}
+              bind:selection
+              bind:currentlayer
             ></QueryMap>
           </div>
         </div>
@@ -255,9 +250,11 @@
               <div>
                 <select name="Choosedatefield" bind:value = {datefield} class="input">
                   <option selected disabled class="header" value="">Choose a Date field</option>
-                  {#each datefields as field}
-                    <option class = "option" value={field}> {field} </option>
-                  {/each}
+                  {#if collection}
+                    {#each collection.timeFields as field}
+                      <option class = "option" value={field}> {field} </option>
+                    {/each}
+                  {/if}  
                 </select>
               </div>
             </div>

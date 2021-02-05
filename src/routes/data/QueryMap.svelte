@@ -9,8 +9,9 @@
   import NavigationControl from '../../components/map/NavigationControl.svelte';
   export let selectMode = ctrl_click_adds
   export let height = 500  
-  export let layerlist
+  export let layerlist =[]
   export let currentlayer 
+  export let selection
   let map
 
   const fill = {
@@ -54,8 +55,8 @@
   $:{
     layerlist.map(d=>d.ui.visible = false )
     layerlist[currentlayer] && (layerlist[currentlayer].ui.visible = true)
-
   }
+
 
 </script>
 
@@ -63,7 +64,14 @@
   <Map bind:map={map} lat={-41.5} lon={172} zoom={4.5} minZoom={3.5} style='mapbox://styles/dataventures/cjzaospfz0i1l1cn3kcuof5ix'>
     {#each layerlist as layer (layer.map.name)}
         <MapSource name={layer.map.name} type="vector" url={layer.map.url}>
-          <SelectableMapLayer bind:visible={layer.ui.visible} id={layer.map.name+"-fill"} type="fill" {selectMode} sourcelayer={layer.map.sourcelayer} options={fill} id_accessor={accessor_for(layer.map)} reverse_accessor={reverse_accessor_for(layer.map)} bind:selected={layer.map.selection}/>
+          <SelectableMapLayer 
+            bind:visible={layer.ui.visible} 
+            id={layer.map.name+"-fill"} 
+            type="fill" {selectMode} 
+            sourcelayer={layer.map.sourcelayer} 
+            options={fill} id_accessor={accessor_for(layer.map)} 
+            reverse_accessor={reverse_accessor_for(layer.map)} 
+            bind:selected={selection}/>
           <MapLayer bind:visible={layer.ui.visible} id={layer.map.name+"-lines"} type="line" sourcelayer={layer.map.sourcelayer} options={lines}></MapLayer>
         </MapSource>
     {/each}
