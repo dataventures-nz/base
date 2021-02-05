@@ -112,7 +112,7 @@
     {
       label:"curl your query",
       copytext:(match,collection)=>{
-        return curlhead+tokentext+`" -d '`+JSON.stringify(match)+"' "+api_url(collection.db+"/"+collection.collection)
+        return curlhead+tokentext+`" -d '`+JSON.stringify(match)+"' "+api_url(service)
       }
     },
     {
@@ -149,12 +149,14 @@
   }
   
   function startDownload() {
-    const url = api_url(collection.db+"/"+collection.collection)
+    const url = api_url(service)
     download(url, match, filename)
   }
 
-  $: console.log({collection,currentlayer,dbfield,selection})
+  let service
+  $: console.log({collection,currentlayer,dbfield,selection,service})
   $: if(collection){dbfield = collection.mappableFields[currentlayer].db.field}
+  $: if(collection){service = collection.displayName}
   $: match = make_match(selection,dbfield,datefield,startDate,endDate)
   $: copytext = option.copytext(match,table,r)
   
@@ -298,7 +300,7 @@
                       <span class="hoverhide" >&lt your token &gt"</span>
                       <span class="hovershow">{tokentext}"</span>
                     </span>
-                      -d '{JSON.stringify(match)}' {api_url(collection.db+"/"+collection.collection)}
+                      -d '{JSON.stringify(match)}' {api_url(service)}
                   </div>
                 {:else if option.label == "R script"}
   <pre id="R" bind:this={r}>
@@ -306,7 +308,7 @@
   library(httr)
   
   mydataframe &lt;- POST(
-      url = "{api_url(collection.db+"/"+collection.collection)}",
+      url = "{api_url(service)}",
       add_headers(Authorization = "Bearer {tokentext}"  
       body = '{JSON.stringify(match)}',
       content_type_json()
