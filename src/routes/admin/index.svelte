@@ -68,7 +68,6 @@
 
       <h3>Parents</h3>
       <NodeList source={false} items={parents} on:selectItem={e => node = e.detail}/>
-      (+)
 
       {#if node.type != 'user'}
       <h3>Children</h3>
@@ -80,7 +79,7 @@
 
       <h3>Admined By</h3>
       <NodeList source={false} items={adminedBy} on:selectItem={e => node = e.detail}/>
-      (+)
+      <button>Add Admin</button>
 
       {#if node.type == 'user'}
         <h3>Admins</h3>
