@@ -32,7 +32,7 @@ export const createDebounceStore = (initialValue, fn) => {
 
   const checkQueue = () => {
     if (processing) {
-      return // we are working, or we don't have anything new to do
+      return
     }
     if (kick || (JSON.stringify(currentValue) != JSON.stringify(nextValue))){
       startProcessing()
