@@ -37,7 +37,6 @@
   let copytext
   let tokentext = "tokentext"
   
-  $: console.log(collection)
   $: collection && (layerlist = collection.mappableFields)
   
   function displayname(collection){
@@ -67,14 +66,14 @@
     return timefields
   }
 
-
   async function get_allowed_db(){
     let collections = await listDatabases()
     let value =  collections.map(d=>{
         return {
           displayName:displayname(d),
           mappableFields:mappable_fields(d),
-          timeFields:time_fields(d)  
+          timeFields:time_fields(d),
+          currentlayer:0  
         }
       }
     )
@@ -133,19 +132,25 @@
   token()
   
   const tabclick = function(i){
-    collection.mappableFields[currentlayer].selection = selection
-    currentlayer=i
+    collection.mappableFields[collection.currentlayer].selection = selection
+    collection.currentlayer=i
+    currentlayer = i
     selection = collection.mappableFields[i].selection ? collection.mappableFields[i].selection : []
   }
 
+  const collectionchanged = function(a,b){
+    currentlayer = collection.currentlayer
+    selection = collection.mappableFields[collection.currentlayer].selection ? collection.mappableFields[collection.currentlayer].selection : []
+  }
+
   const clearmapselection = function(){
-    collection.mappableFields[currentlayer].map.selection = []
+    console.log(collection)
+    collection.mappableFields[collection.currentlayer].map.selection = []
+    selection = []
   }
 
   const cleardateselection = function(){
     datefield = ""
-    startDate = null
-    endDate = null
   }
   
   function startDownload() {
@@ -154,8 +159,8 @@
   }
 
   let service
-  $: console.log({collection,currentlayer,dbfield,selection,service})
-  $: if(collection){dbfield = collection.mappableFields[currentlayer].db.field}
+  $: if (collection){collection.mappableFields[collection.currentlayer].selection = selection}
+  $: if(collection){dbfield = collection.mappableFields[collection.currentlayer].db.field} 
   $: if(collection){service = collection.displayName}
   $: match = make_match(selection,dbfield,datefield,startDate,endDate)
   $: copytext = option.copytext(match,table,r)
@@ -211,7 +216,8 @@
           <p>First choose a collection to query </p>
           <div class="select control is-fullwidth">
             {#await get_allowed_db() then dbs}
-              <select name="Choosecollection" bind:value = {collection} class="input">
+              <!-- svelte-ignore a11y-no-onchange -->
+              <select name="Choosecollection" bind:value = {collection} on:change={collectionchanged} class="input">
                 <option selected disabled class="header" value="">Choose a Collection </option>
                 {#each dbs as db}
                   <option class = "option" value={db}> {db.displayName} </option>
@@ -233,25 +239,24 @@
               </Tabs>
             </div>
           <div>
-            <QueryMap 
+            <QueryMap
               height = 650 
               selectMode={xor_only}
               layerlist =  {collection ? collection.mappableFields:[]}
               bind:selection
-              bind:currentlayer
+              bind:currentlayer={currentlayer}
             ></QueryMap>
           </div>
         </div>
       </div>
        <div class="col-md-7">
          <div class=box>
-          <Clear clearfn = {cleardateselection}></Clear>
           <div class = "row select-wrapper">
             <div class = col-md-12>
-              <p> Optional: Filter by date</p>
+              <p> Optional: Filter by date/time field </p>
               <div>
                 <select name="Choosedatefield" bind:value = {datefield} class="input">
-                  <option selected disabled class="header" value="">Choose a Date field</option>
+                  <option selected class="header" value="">No Date filter</option>
                   {#if collection}
                     {#each collection.timeFields as field}
                       <option class = "option" value={field}> {field} </option>

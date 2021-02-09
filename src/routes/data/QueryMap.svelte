@@ -12,6 +12,7 @@
   export let layerlist =[]
   export let currentlayer 
   export let selection
+  
   let map
 
   const fill = {
