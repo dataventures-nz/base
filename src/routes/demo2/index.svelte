@@ -1,12 +1,17 @@
 <script>
 import Crossfilter from '$components/query/Crossfilter.svelte'
 import Filter from '$components/query/Filter.svelte'
+import Timeseries from '$components/pancake/TimeSeries.svelte'
 let start = new Date(2020,1,6)
 let dateBrush = {time:{$gte:start}}
 let rtoBrush = {sa2_2018_code:100100}
 </script>
 
 <Crossfilter db='population' collection='hourly_materialised'>
+
+  <Timeseries></Timeseries>
+
+
   <h2>dates</h2>
   <Filter id='date' let:data bind:brush={dateBrush} pipeline={[{$group:{_id:"$time", record_count:{$sum:1}}}]}>
     {#await data then ds}

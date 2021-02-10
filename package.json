@@ -18,6 +18,7 @@
 		"bson": "^4.2.2",
 		"d3-dsv": "^2.0.0",
 		"d3-fetch": "^2.0.0",
-		"svelte-dnd-action": "^0.6.22"
+		"svelte-dnd-action": "^0.6.22",
+		"@sveltejs/pancake": "0.0.17"
 	}
 }
