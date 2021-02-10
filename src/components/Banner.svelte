@@ -79,7 +79,6 @@
     <a class="logo" href="/"><img src="svg/DV-logo-Horizontal-reverse.svg" ></a>
     <a class = item href="/user">User</a>
     <a class = item href="/admin">Admin</a>
-    <a class = item href="/demo">Demo</a>
     <div class = dd>
       <p class = item>Charts</p>
       <a class = item href="/chartbox">Waterfall</a>
