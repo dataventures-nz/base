@@ -1,5 +1,7 @@
 <script>
+
 	import { tick, getContext, setContext, onDestroy, onMount } from 'svelte';
+
 
 	const { getMap } = getContext("map");
 	const map = getMap();
@@ -18,6 +20,7 @@
 
   // onMount(() => console.log(`MapSource Mounted ${name}`))
    onDestroy(async () => {destroying=true; await tick(); map.removeSource(name)})
+
 
 </script>
 

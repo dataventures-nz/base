@@ -19,6 +19,7 @@
 		"date-fns": "^2.16.1",
 		"lodash": "^4.17.20",
 		"sass": "^1.0.0",
+		"save-svg-as-png": "^1.4.17",
 		"svelte": "^3.29.0",
 		"svelte-dnd-action": "^0.6.22",
 		"svelte-preprocess": "^4.0.0"

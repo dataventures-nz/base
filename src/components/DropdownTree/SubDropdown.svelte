@@ -10,10 +10,12 @@
 
 </style>
 
+
 	{#await subgroupaccessor(group) then items}
 		{#each items as item}
 		<option class = "option" value={valueaccessor(item)}>
 			{labelaccessor(item)}
+
 		</option>
 		{/each}
 	{:catch err}

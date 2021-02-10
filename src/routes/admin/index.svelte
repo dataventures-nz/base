@@ -1,11 +1,15 @@
 <script>
   import {admin_url, fetch_json} from '$components/api.mjs'
   import NodeList from './NodeList.svelte'
+  import Schema from './Schema.svelte'
+
   const sortByName = (a,b) => a._id.localeCompare(b._id)
 
   let nodes = []
   const getData = () => fetch_json("GET", admin_url("")).then(x => x.sort(sortByName).map(x => {x.id = x._id; return x})).then(x => nodes = x)
   getData()
+
+  const update = () => {getData(); node = (nodes.filter(n => n.id = node.id))[0]}
 
   let me = undefined
   const getMe = () => fetch_json("GET", admin_url("/whoAmI")).then(x => me = x)
@@ -27,7 +31,9 @@
   $: filtered_tags = nodes.filter(x => x.type == 'tag' && x._id.includes(filter))
   $: filtered_users = nodes.filter(x => x.type == 'user' && x._id.includes(filter))
 
-  let node = undefined
+  let node_id = undefined
+  $: node = nodes.filter(node => node_id == node?._id)?.[0]
+
   $: node && !node.org && getAllPermissionsFor(node._id)
   $: parents = node ? getAll(node.parents) : []
   $: children = node ? getAll(node.children) : []
@@ -47,6 +53,7 @@
 
     <h3>Collections</h3>
     <NodeList source={true} target={false} items={filtered_collections} on:selectItem={e => node = e.detail}/>
+    <button>Add New Collection</button>  
 
     <h3>Tags</h3>
     <NodeList source={true} target={false} items={filtered_tags} on:selectItem={e => node = e.detail}/>
@@ -59,23 +66,29 @@
     {#if node}
       <h2><span class='{node.type} pill'>{node._id}</span></h2>
 
-      {#if node.type != 'collection'}
-        <h3>Parents</h3>
-        <NodeList source={false} items={parents} on:selectItem={e => node = e.detail}/>
-        (+)
-      {/if}
+      <h3>Parents</h3>
+      <NodeList source={false} items={parents} on:selectItem={e => node = e.detail}/>
 
+      {#if node.type != 'user'}
       <h3>Children</h3>
       <NodeList source={false} items={children} on:selectItem={e => node = e.detail}/>
-      (+)
+      <button>Add Materialised View</button>
+      <button>Add Tag</button>
+      <button>Add User</button>
+      {/if}
 
       <h3>Admined By</h3>
       <NodeList source={false} items={adminedBy} on:selectItem={e => node = e.detail}/>
-      (+)
+      <button>Add Admin</button>
 
       {#if node.type == 'user'}
         <h3>Admins</h3>
         <NodeList source={false} items={admins} on:selectItem={e => node = e.detail}/>
+      {/if}
+
+      {#if node.type == 'collection'}
+      <h3>Schema</h3>
+      <Schema schema={JSON.stringify(node.schema,null,2)} node_id={node._id} on:saved={update}/>
       {/if}
 
 
