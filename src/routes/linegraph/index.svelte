@@ -1,9 +1,11 @@
 <script>
+import Cursor from '$components/charts/linegraph/Cursor.svelte'
 import LineGraph from '$components/charts/linegraph/LineGraph.svelte'
 import LineTrace from '../../components/charts/linegraph/LineTrace.svelte'
 import StackedArea from '../../components/charts/linegraph/StackedArea.svelte'
 import { xor_only } from '$components/map/select_modes.mjs'
 import QueryMap from './QueryMap.svelte'
+import TNZCursor from './TNZCursor.svelte'
 import default_layerlist from "./field_to_layer.json"
 import DatePicker from '$components/datepicker/DatePicker.svelte'
 import {query} from '$components/api.mjs'
@@ -193,6 +195,12 @@ let layers = [
                 <LineTrace data = {d} xaccessor={d=>d.time} yaccessor={d=>+d.domestic+(+d.unknown)} stroke={"black"}></LineTrace> 
               {/await}
             {/if}
+            <Cursor let:x let:y let:sx let:sy>
+              <g style = {"transform:translate("+x+"px,"+y+"px)"}> 
+                <text>{sx}</text>
+              </g>
+              <TNZCursor {x} ></TNZCursor>
+            </Cursor>
           </LineGraph>
         </div>
       </div>

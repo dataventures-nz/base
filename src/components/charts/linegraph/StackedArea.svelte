@@ -20,7 +20,7 @@
 
   console.log(data[0])
 
-  let {height,margin,xScale,yScale,xextent,yextent} =  getContext("constants");
+  let {height,width,margin,xScale,yScale,xextent,yextent} =  getContext("constants");
 
   $: if(xextent){xScale.setExtents(id,xextent)} 
     else {xScale.setExtents(id,data.map(xaccessor))}

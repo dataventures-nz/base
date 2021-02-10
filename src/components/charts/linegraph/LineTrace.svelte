@@ -11,7 +11,7 @@
   $: if (stroke==undefined) {
     stroke = "#" + Math.floor(Math.random()*0xefffff + 0x100000).toString(16)
   }
-  let {height,margin,xScale,yScale,xextent,yextent} =  getContext("constants");
+  let {height,width,margin,xScale,yScale,xextent,yextent} =  getContext("constants");
 
 
 

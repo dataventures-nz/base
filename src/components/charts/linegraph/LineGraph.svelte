@@ -41,7 +41,7 @@
   $: yAxis = d3.axisLeft($yScale)
   $: if(yaxis) d3.select(yaxis).call(yAxis)
 
-  setContext("constants",{height,margin,xScale,yScale,xextent,yextent})
+  setContext("constants",{height,width,margin,xScale,yScale,xextent,yextent})
 
 </script>
 
