@@ -1,6 +1,7 @@
 <script>
   import {userPromise, tokenPromise} from '$components/security.mjs'
   const putTextOnClipboard = text => navigator.clipboard.writeText(text)
+
 </script>
 
 {#await userPromise()}
