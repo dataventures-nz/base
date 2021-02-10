@@ -8,6 +8,7 @@ module.exports = {
 		// You can create optimized builds for different platforms by
 		// specifying a different adapter
 		adapter: '@sveltejs/adapter-node',
+//		adapter: '@sveltejs/adapter-static',
 
 		// hydrate the <div id="svelte"> element in src/app.html
 		target: '#svelte'
