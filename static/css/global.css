@@ -26,3 +26,8 @@ button:disabled{
   color: #fff;
 }
 
+.box{    
+  border: 1px solid #dbdbdb;
+  padding: 5px;
+  margin: 5px;
+}

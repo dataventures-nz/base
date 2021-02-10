@@ -11,10 +11,11 @@
 	export let options ={};
 
   // onMount(() => console.log(`MapLayer Mounted ${id}`))
-  // onDestroy(() => map.removeLayer(id))
 
 // layout properties
 	export let visible = true;
+  // onDestroy(()=>{visible=false; map.setLayoutProperty(id,'visibility', visible?'visible':'none') })
+  onDestroy(()=>{map.removeLayer(id)})
   let source = getContext("mapSourceName")
   let layer = {id, type, "source-layer":sourcelayer, source, ...options};
   map.addLayer(layer);

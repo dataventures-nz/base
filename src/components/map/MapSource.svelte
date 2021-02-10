@@ -1,5 +1,7 @@
 <script>
-	import { getContext, setContext, onDestroy, onMount } from 'svelte';
+
+	import { tick, getContext, setContext, onDestroy, onMount } from 'svelte';
+
 
 	const { getMap } = getContext("map");
 	const map = getMap();
@@ -9,18 +11,21 @@
 	export let options = {};
 	let container
 	let maploaded=false
-	setContext("mapSourceName",name);
-	let src = map.addSource(name, {type, url, ...options})
-	maploaded=true
+	let destroying = false	
+	if (!map.getSource(name)){
+		setContext("mapSourceName",name);
+		map.addSource(name, {type, url, ...options})
+		maploaded=true
+	}
 
   // onMount(() => console.log(`MapSource Mounted ${name}`))
-  // onDestroy(() => map.removeSource(name))
+   onDestroy(async () => {destroying=true; await tick(); map.removeSource(name)})
 
 
 </script>
 
 <div bind:this={container}>
-	{#if maploaded}
+	{#if maploaded && !destroying}
 		<slot></slot>
 	{/if}
 </div>
