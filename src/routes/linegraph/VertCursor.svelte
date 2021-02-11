@@ -1,8 +1,6 @@
 <script>
   import * as d3 from "d3";
   import { getContext } from 'svelte';
-  export let sx = 0
-  export let sy = 0
   export let x  = 0
   export let y  = 0
   export let data=[{x:0,y1:0.3,y2:0.7},{x:1,y1:0.7,y2:0.3}]

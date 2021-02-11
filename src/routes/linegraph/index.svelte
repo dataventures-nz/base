@@ -5,12 +5,15 @@ import LineTrace from '../../components/charts/linegraph/LineTrace.svelte'
 import StackedArea from '../../components/charts/linegraph/StackedArea.svelte'
 import { xor_only } from '$components/map/select_modes.mjs'
 import QueryMap from './QueryMap.svelte'
-import TNZCursor from './TNZCursor.svelte'
+import VertCursor from './VertCursor.svelte'
+import BoxCursor from './BoxCursor.svelte'
 import default_layerlist from "./field_to_layer.json"
 import DatePicker from '$components/datepicker/DatePicker.svelte'
 import {query} from '$components/api.mjs'
 import ChartPrinter from '$components/charts/ChartPrinter.svelte'
 import { onDestroy } from 'svelte'
+import * as d3 from "d3"
+
 
 let filename = "graph"
 let datefield = "time"
@@ -102,6 +105,22 @@ let layers = [
       style:{fill:"green",stroke:null}
     }
   ]
+  let stack
+  // $: console.log(stack)
+
+  function content(sx){
+
+    // let data = stack[1].map(d=>d.data)
+    if (stack){
+      let m = d3.minIndex(stack[1],d=>Math.abs(d.data.time-sx))
+      let d = stack[1][m]["data"]
+      console.log(d)
+      return ["time: "+d.time,"total: "+d.count,
+      "visitors: "+((d.domestic*1)+(d.international*1)+(d.unknown*1))]
+    }
+    return ["something is wrong"]
+  }  
+
 
 </script>
 
@@ -191,15 +210,13 @@ let layers = [
           <LineGraph xtime={true} width = {800} ysuppressZero={false} intercepts = {"bottom_left"}>
             {#if Object.values(dataarrays)[0]}
               {#await Object.values(dataarrays)[0].data then d}
-                <StackedArea data = {d} xaccessor={d=>d.time} {layers}></StackedArea>
+                <StackedArea data = {d} xaccessor={d=>d.time} {layers} bind:stacked_data={stack}></StackedArea>
                 <LineTrace data = {d} xaccessor={d=>d.time} yaccessor={d=>+d.domestic+(+d.unknown)} stroke={"black"}></LineTrace> 
               {/await}
             {/if}
             <Cursor let:x let:y let:sx let:sy>
-              <g style = {"transform:translate("+x+"px,"+y+"px)"}> 
-                <text>{sx}</text>
-              </g>
-              <TNZCursor {x} ></TNZCursor>
+              <VertCursor {x} ></VertCursor>
+              <BoxCursor {x} content = {content(sx)}></BoxCursor>
             </Cursor>
           </LineGraph>
         </div>

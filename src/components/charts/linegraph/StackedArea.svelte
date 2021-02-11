@@ -17,8 +17,7 @@
       style:{fill:"pink",stroke:"black","fill-opacity":0.5}
     }
   ]
-
-  console.log(data[0])
+  export let stacked_data
 
   let {height,width,margin,xScale,yScale,xextent,yextent} =  getContext("constants");
 
@@ -35,8 +34,8 @@
     .y1(d=>$yScale(d[1]))
     .y0(d=>$yScale(d[0]))
 
-  var _stack = stack(data)
-  var toplayer = _stack[_stack.length -1]
+  stacked_data = stack(data)
+  var toplayer = stacked_data[stacked_data.length -1]
 
   $: if(yextent){yScale.setExtents(id,yextent)} 
     else {yScale.setExtents(id,toplayer.map(d=>d[1]))} 
@@ -47,7 +46,7 @@
 
 <g style = {"transform:translate("+margin+","+margin+")"}>
   
-  {#each _stack as a}
+  {#each stacked_data as a}
     <path d={area(a)} { ...layers[a.key].style }></path>
   {/each}
 </g>
