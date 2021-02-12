@@ -112,11 +112,16 @@ let layers = [
 
     // let data = stack[1].map(d=>d.data)
     if (stack){
+      
       let m = d3.minIndex(stack[1],d=>Math.abs(d.data.time-sx))
+      
+      if (stack[1][m]){
       let d = stack[1][m]["data"]
-      console.log(d)
       return ["time: "+d.time,"total: "+d.count,
       "visitors: "+((d.domestic*1)+(d.international*1)+(d.unknown*1))]
+      } else {
+        return ["something else is wrong"]
+      }
     }
     return ["something is wrong"]
   }  

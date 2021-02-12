@@ -34,8 +34,8 @@
     .y1(d=>$yScale(d[1]))
     .y0(d=>$yScale(d[0]))
 
-  stacked_data = stack(data)
-  var toplayer = stacked_data[stacked_data.length -1]
+  $: stacked_data = stack(data)
+  $: toplayer = stacked_data[stacked_data.length -1]
 
   $: if(yextent){yScale.setExtents(id,yextent)} 
     else {yScale.setExtents(id,toplayer.map(d=>d[1]))} 

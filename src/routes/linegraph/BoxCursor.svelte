@@ -11,14 +11,9 @@
   let boxwidth = 0
   let boxheight = 0  
 
-  $: if(inner_g && inner_g.children[0]){lineheight = inner_g.children[0].getBoundingClientRect().height} 
-  // $: if(innerg){
-  //   boxheight = innerg.getBoundingClientRect().height +10
-  //   boxwidth = innerg.getBoundingClientRect().width +10
-  // } 
-
-  $:console.log(inner_g)
-
+  $: if(inner_g && inner_g.children[0]){
+      lineheight = inner_g.children[0].getBoundingClientRect().height
+    } 
   $: rangeend = $xScale.range()[1]
   $: right = x+boxwidth > rangeend  
   $: offset = right ? -5:5
@@ -30,7 +25,10 @@
     boxwidth = inner_g.getBoundingClientRect().width +10
   }
   onMount(layout)
-  $: if(content){layout()}
+  $: if(content && inner_g && inner_g.children[0]){
+    layout()
+    lineheight = inner_g.children[0].getBoundingClientRect().height
+  }
 
 </script>
 
