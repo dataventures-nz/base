@@ -1,7 +1,7 @@
 <script>
   import {getContext} from 'svelte'
-  const {getMap} = getContext("map")
-  const map = getMap()
+  const mapStore = getContext("mapStore")()
+  const map = mapStore.map
 
   export let options = {"showCompass":false}
   export let position = 'top-left'

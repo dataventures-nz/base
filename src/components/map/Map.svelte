@@ -1,6 +1,7 @@
-<script>
+ <script>
 	import { onMount, setContext, onDestroy } from 'svelte'
 	import { createEventDispatcher } from 'svelte'
+	import {createMapStore} from './mapstore.mjs'
   // import mapboxgl from './mapbox-gl.js'
 
 	const dispatch = createEventDispatcher()
@@ -13,29 +14,27 @@
 	export let map = undefined
 	let container
   let maploaded
+	let mapStore
 
 	onDestroy(() => { if (map) map.remove() })
 
-	setContext("map", {
-    getMap: () => map
-  })
+	setContext("mapStore", () => mapStore)
 
 	onMount(async () => {
     mapboxgl.accessToken = "pk.eyJ1IjoiZGF0YXZlbnR1cmVzIiwiYSI6ImNqc2MzbXdkbDAxNzI0M3BubGx2OXZwc28ifQ.ZtDrTImrICdc8-TkI6FIfg"
-		map = new mapboxgl.Map({
+		mapStore = createMapStore({
 			container,
 			center: [lon, lat],
 			style,
 			zoom,
 			minZoom
 		})
+		let map = mapStore.map
+		
 		map.on("load", () => {maploaded = true})
 		dispatch('mapready', {map})
 		return () => {
-      // need to record which layers and sources are added.
-      // map.eachLayer((layer) => map.removeLayer(layer))
-      // map.eachSource((source) => map.removeSource(source))
-			map.remove()
+			mapStore.removeAll()
 		}
 	})
 </script>

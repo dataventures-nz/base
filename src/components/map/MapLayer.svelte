@@ -1,29 +1,24 @@
 <script>
 	import { onMount, getContext, setContext, onDestroy } from 'svelte';
 	import { createEventDispatcher } from 'svelte';
+	const mapStore = getContext("mapStore")()
+  const map = mapStore.map
 	const dispatch = createEventDispatcher();
-	const { getMap } = getContext("map");
-	const map = getMap();
 
 	export let id;
 	export let type;
 	export let sourcelayer;
 	export let options ={};
+  export let visible = true;
+  onDestroy(()=>{mapStore.removeLayer(id)})
+  let source_id = getContext("source_id")
+  mapStore.addLayer(source_id, id, type, sourcelayer, options)
 
-  // onMount(() => console.log(`MapLayer Mounted ${id}`))
 
-// layout properties
-	export let visible = true;
-  // onDestroy(()=>{visible=false; map.setLayoutProperty(id,'visibility', visible?'visible':'none') })
-  onDestroy(()=>{map.removeLayer(id)})
-  let source = getContext("mapSourceName")
-  let layer = {id, type, "source-layer":sourcelayer, source, ...options};
-  map.addLayer(layer);
-  map.setLayoutProperty(id,'visibility', visible?'visible':'none')
   const eventtypes = ['sourcedata','mousedown','mouseup','click','dblclick','mousemove','mouseenter','mouseleave','mouseover','mouseout','contextmenu','touchstart','touchend','touchcancel'];
   eventtypes.forEach(eventtype => {
     map.on(eventtype, id, function(e) {
-      dispatch(eventtype,{id,'event':e, 'features':e.features, source, sourcelayer})
+      dispatch(eventtype,{id,'event':e, 'features':e.features, source:source_id, sourcelayer})
     })
   })
 
