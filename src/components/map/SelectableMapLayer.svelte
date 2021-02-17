@@ -13,10 +13,11 @@
   export let id_accessor= undefined //id_accessor gets id off feature?
   export let reverse_accessor= undefined
   export let mapSelectedColor = "#446a9f"
-  const {getMap} = getContext("map");
+  const mapStore = getContext("mapStore")()
+  const map = mapStore.map
+
   // const { getMap } = getContext("map");
-  var source = getContext("mapSourceName");
-  const map = getMap();
+  var source = getContext("source_id");
 
   // selection stuff
   let selectedOnMap=[] 

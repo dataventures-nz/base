@@ -2,8 +2,9 @@
   import {getContext} from 'svelte';
   // import MapboxGeocoder from '@mapbox/mapbox-gl-geocoder';
   // import '@mapbox/mapbox-gl-geocoder/dist/mapbox-gl-geocoder.css';
-  const {getMap} = getContext("map");
-  const map = getMap();
+  const mapStore = getContext("mapStore")()
+
+  const map = mapStore.map
   import access from './mapbox.json'
   export let countries = 'nz';
   export let zoom = 10;
