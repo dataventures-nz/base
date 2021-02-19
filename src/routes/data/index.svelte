@@ -25,8 +25,6 @@
   let layerlist = []
   let allowedlayers = ["sa2_2018_code","TALB2020_code","region_2018_code"]
   let filename = "mydata.csv"
-  let startdatedata = ""
-  let enddatedata = ""
   let match
   let currentlayer = 0
   let selection = []
@@ -68,6 +66,7 @@
 
   async function get_allowed_db(){
     let collections = await listDatabases()
+    console.log(collections)
     let value =  collections.map(d=>{
         return {
           displayName:displayname(d),

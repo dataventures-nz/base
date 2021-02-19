@@ -87,6 +87,7 @@
       <a class = item href="/chartbox3">Polagraph</a>
       <a class = item href="/linegraph">Simple Line</a>
     </div>
+    <a class = item href='/tnz_product'>TNZ Prototype</a>
   </div>
   <div class = rightitems>
     <div class='usr'>

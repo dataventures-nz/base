@@ -66,6 +66,7 @@ function addtodataarrays(selection){
 
 $: dbfield = layerlist[currentlayer].db.field
 $: if (selection){
+  console.log("heeeeeeere")
   selection = JSON.parse(JSON.stringify(layerlist[currentlayer].map.selection))
   let newdataarrays = {} 
   selection.map(function(s){newdataarrays[s.name]=dataarrays[s.name]||addtodataarrays(s)})
