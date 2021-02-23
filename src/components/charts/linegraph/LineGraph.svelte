@@ -5,7 +5,7 @@
   export let svg
   export let height = 200
   export let width = 500
-  export let margin = 30
+  export let margin = {top:30,bottom:30,left:80,right:20}
   export let xextent = false
   export let yextent = false
   export let xtime = false
@@ -16,9 +16,9 @@
   let xaxis, yaxis, x0,y0
   
   let xScale = xtime ? createScale(d3.scaleTime()) : createScale()
-  xScale.setRange([margin,width-margin])
+  xScale.setRange([margin.left,width-margin.right])
   let yScale = ytime ? createScale(d3.scaleTime()) : createScale()
-  yScale.setRange([height-margin,margin])
+  yScale.setRange([height-margin.bottom,margin.top])
 
   $: {
     if (intercepts == "zero"){
@@ -28,8 +28,8 @@
         x0 = $xScale(intercepts[0])
         y0 = $yScale(intercepts[1])
     } else {
-        x0 = margin
-        y0 = height-margin
+        x0 = margin.left
+        y0 = height-margin.bottom
     } 
   }
 
@@ -42,10 +42,11 @@
   $: if(yaxis) d3.select(yaxis).call(yAxis)
 
   setContext("constants",{height,width,margin,xScale,yScale,xextent,yextent})
-
+    $: console.log(svg)
+  
 </script>
 
-<svg height={height} width={width}>
+<svg height={height} width={width} bind:this={svg}>
   <g class = xaxis bind:this={xaxis} style={"transform:translate(0px,"+y0+"px)"}></g>
   <g class = yaxis bind:this={yaxis} style={"transform:translate("+x0+"px,0px)"}></g>
   <slot></slot>

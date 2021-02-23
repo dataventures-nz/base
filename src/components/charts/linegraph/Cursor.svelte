@@ -24,7 +24,7 @@
 }
 </style>
 
-<g style = {"transform:translate("+margin+"px,"+margin+"px)"}>
+<g style = {"transform:translate("+margin.left+"px,"+margin.top+"px)"}>
   <slot {x}{y}{sx}{sy} ></slot>
-  <rect height={height-(2*margin)} width={width-2*margin} on:mousemove={(event)=> e=event} ></rect>
+  <rect height={height-(margin.top+margin.bottom)} width={width-(margin.left+margin.right)} on:mousemove={(event)=> e=event} ></rect>
 </g>

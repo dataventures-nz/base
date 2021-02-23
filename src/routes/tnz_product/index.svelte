@@ -17,7 +17,7 @@ let filename = "graph"
 let datefield = "time"
 let collection = "noon_by_rto"
 let month = df.addMonths(new Date(),-1)
-
+let monthsvg,aggregatesvg
 
 let layerlist = [{
     "db":{
@@ -46,19 +46,10 @@ let dbfield = ""
 
 function make_match(selection,dbfield,datefield,month){
   let newmatch = {}
-  if (dbfield && selection.length){
-    const idlist = selection.map(d=>+d.area_id)
+  if (dbfield && selection){
+    const idlist = [+selection.area_id]
     newmatch[dbfield] = {$in:idlist}
   }
-
-  if(datefield && month){
-    newmatch[datefield]= {}
-    if (month) {
-      newmatch[datefield].$gte = df.startOfMonth(month)
-      newmatch[datefield].$lt = df.endOfMonth(month)
-    }  
-  }
-
   const projection = {_id:false,time:true,count:true,local:true,domestic:true,international:true,unknown:true}
   const pipeline = [{$match:newmatch},{$project:projection}]
 
@@ -67,31 +58,62 @@ function make_match(selection,dbfield,datefield,month){
 
 function clean(data){
   data.map(function(d){
+    d.Total = +d.count
+    d.Domestic = +d.domestic
+    d.International = +d.international
+    d.Local = +d.local
+    d.Unknown = +d.unknown
     d.time = new Date(d.time)
   })
   data.sort((a,b)=>a.time-b.time)
   return data
 }
 
-let dataarrays = {}
+const grouper = (f) => (obj, x) => {
+  const k = f(x)
+  obj[k] = [x, ...(obj[k] || [])]
+  return obj
+}
 
-function addtodataarrays(selection){
-  const match = make_match([selection],dbfield,datefield,month)
-  console.log({match})
-  const data = query("population",collection,match).then(clean)
-  return {selection,data,color:"#" + Math.floor(Math.random()*16777215).toString(16)}
+function reducer(acc,v){
+  acc.n = ++acc.n || 1
+  acc.Total = acc.Total+v.Total || v.Total
+  acc.Domestic = acc.Domestic+v.Domestic || v.Domestic
+  acc.International = acc.International+v.International || v.International
+  acc.Local = acc.Local+v.Local || v.Local
+  acc.Unknown = acc.Unknown+v.Unknown || v.Unknown
+  acc.time = acc.time || df.startOfMonth(v.time)
+  acc.mean = acc.mean ||  function(field){return Math.round(this[field]/this.n)}
+  return acc
+}
+
+function monthlymean(data){
+  var _data = data.reduce(grouper(d=>df.format(d.time,"MMyy")),{})
+  _data = Object.values(_data).map(d=>d.reduce(reducer,{}))
+  _data = _data.sort((a,b)=>a.time-b.time)
+  return _data
+}
+
+let data
+
+async function getdata(selection){
+  const match = make_match(selection,dbfield,datefield,month)
+  const d = query("population",collection,match).then(clean)
+  const data = await d
+  const aggregate = monthlymean(data)
+  return {selection,data,aggregate}
 }
 
 $: if (layerlist.length > 0){ dbfield = layerlist[0].db.field}
 
 $: if (layerlist.length > 0 && selection){
   selection = JSON.parse(JSON.stringify(layerlist[0].map.selection))
-  let newdataarrays = {} 
-  selection.map(function(s){newdataarrays[s.name]=dataarrays[s.name]||addtodataarrays(s)})
-  dataarrays = newdataarrays
+  data = getdata(selection[0])
 }
 
-$: console.log(make_match(selection,dbfield,datefield,month))
+$: datefilter = (dataArray) => dataArray.filter(d=>d.time >= df.startOfMonth(month) && d.time <= df.endOfMonth(month)) 
+
+$: console.log({data})
 // $: console.log(selection)
 
 let svg
@@ -102,32 +124,31 @@ $: if (chartdiv){width=(chartdiv.getBoundingClientRect().width)-12}
 
 let layers = [
     {
-      name:"y1",
-      accessor: d => +d.local,
-      style:{fill:"pink",stroke:"none","fill-opacity":0.5}
+      name:"Local",
+      accessor: d => d.mean ? d.mean("Local") : d.Local,
+      style:{fill:"#5F93DC",stroke:"none"}
     },
     {
-      name:"y2",
-      accessor: d => +d.domestic,
-      style:{fill:"yellow",stroke:"yellow"}
+      name:"Domestic",
+      accessor: d => d.mean ? d.mean("Domestic") :d.Domestic,
+      style:{fill:"#ca637f",stroke:"none"}
     },
     {
-      name:"y2",
-      accessor: d => +d.international,
-      style:{fill:"#000","fill-opacity":0.1}
+      name:"International",
+      accessor: d => d.mean ? d.mean("International") : d.International,
+      style:{fill:"#F5BC61"}
     },
     {
-      name:"y2",
-      accessor: d => +d.unknown,
-      style:{fill:"green",stroke:null}
+      name:"Unknown",
+      accessor: d => d.mean ? d.mean("Unknown") : d.Unknown,
+      style:{fill:"#ccc",stroke:null}
     }
   ]
+
   let stack
   function content(sx){
-    if (stack){
-      
+    if (stack){  
       let m = d3.minIndex(stack[1],d=>Math.abs(d.data.time-sx))
-      
       if (stack[1][m]){
       let d = stack[1][m]["data"]
       return [
@@ -141,6 +162,8 @@ let layers = [
     }
     return ["something is wrong"]
   }  
+
+
 
 
 </script>
@@ -195,28 +218,38 @@ let layers = [
       </div>
 		</div>
    	<div class="col-md-7">
-      <div class="box">
-        <div class = flex style = "padding:5px">         
-          <label for="filename">Filename</label>
-          <input type="text" placeholder ="polargraph" bind:value={filename} />
-          <ChartPrinter filename={filename} svg={svg} />
-        </div>
-      </div>
-      <div class="row box">
-        <div class="col-md-12">
-          <LineGraph xtime={true} width = {800} ysuppressZero={false} intercepts = {"bottom_left"}>
-            {#if Object.values(dataarrays)[0]}
-              {#await Object.values(dataarrays)[0].data then d}
-                <StackedArea data = {d} xaccessor={d=>d.time} {layers} bind:stacked_data={stack}></StackedArea>
-              {/await}
-            {/if}
-            <Cursor let:x let:y let:sx let:sy>
-              <VertCursor {x} ></VertCursor>
-              <BoxCursor {x} content = {content(sx)}></BoxCursor>
-            </Cursor>
-          </LineGraph>
-        </div>
-      </div>
+      {#if selection[0]}
+        {#await data then d}
+          <div class="row box">
+            <div class="col-md-9">
+              <LineGraph xtime={true} width = {800} ysuppressZero={false} intercepts = {"bottom_left"} bind:svg = {monthsvg}>
+                <StackedArea data = {datefilter(d.data)} xaccessor={d=>d.time} {layers} bind:stacked_data={stack}></StackedArea>
+                <Cursor let:x let:y let:sx let:sy>
+                  <VertCursor {x} ></VertCursor>
+                  <BoxCursor {x} content = {content(sx)}></BoxCursor>
+                </Cursor>
+              </LineGraph>
+            </div>
+            <div class="col-md-3">     
+              <ChartPrinter filename={"monthchart"} svg={monthsvg}/>
+            </div>
+          </div>
+          <div class="row box">
+            <div class="col-md-9">
+              <LineGraph xtime={true} width = {800} ysuppressZero={false} intercepts = {"bottom_left"} bind:svg={aggregatesvg}>
+                <StackedArea data = {d.aggregate} xaccessor={d=>d.time} {layers}></StackedArea>
+                <Cursor let:x let:y let:sx let:sy>
+                  <VertCursor {x} ></VertCursor>
+                  <!-- <BoxCursor {x} content = {content(sx)}></BoxCursor> -->
+                </Cursor>
+              </LineGraph>
+            </div>
+            <div class="col-md-3">     
+              <ChartPrinter filename={"monthchart"} svg={aggregatesvg}/>
+            </div>
+          </div>
+        {/await}
+      {/if}
 		</div>
 	</div>
 </section>
