@@ -42,7 +42,6 @@
   $: if(yaxis) d3.select(yaxis).call(yAxis)
 
   setContext("constants",{height,width,margin,xScale,yScale,xextent,yextent})
-    $: console.log(svg)
   
 </script>
 
