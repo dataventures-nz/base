@@ -30,6 +30,12 @@ export const post_api = (service,q) => fetch_json('POST', api_url(service),q)
 export const listDatabases = () => get_api("/")
 export const listCollections = (db) => get_api(`/${db}`)
 export const listNodes = () => get_api(`/admin/${db}`)
+
+const put_admin = (service,q) => fetch_json('PUT', admin_url(service),q)
+export const addCollection = (db,collection) => put_admin("db",{db,collection})
+export const addLink = (parent,child) => put_admin("createLink",{parent,child})
+export const addNewTag = (parent,child) => put_admin("addNode",{parent,child})
+
 export const updateSchema = (node, schema) => fetch_json("PUT", admin_url('schema'), {node,schema})
 
 export const normalise = (q) => EJSON.serialize(q)

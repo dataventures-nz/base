@@ -1,7 +1,21 @@
 <script>
   import {admin_url, fetch_json} from '$components/api.mjs'
+  import AddCollectionForm from './forms/AddCollectionForm.svelte'
+  import AddMaterialisedViewForm from './forms/AddMaterialisedViewForm.svelte'
+  import AddTagForm from './forms/AddTagForm.svelte'
+  import AddUserForm from './forms/AddUserForm.svelte'
+  import AddAdminForm from './forms/AddAdminForm.svelte'
   import NodeList from './NodeList.svelte'
   import Schema from './Schema.svelte'
+  import Modal from './forms/Modal.svelte'
+
+  let showAddCollection = false
+  let showAddMaterialisedView = false
+  let showAddTag = false
+  let showAddUser = false
+  let showAddAdmin = false
+
+  $: console.log(me)
 
   const sortByName = (a,b) => a._id.localeCompare(b._id)
 
@@ -18,13 +32,6 @@
   let all_permissions = []
   const getAllPermissionsFor = (n) => fetch_json("POST", admin_url("/canEditPermissions"), {node:n,permission:'read'}).then(x => all_permissions = x)
   
-/*
-  Org nodes are ones where the people running it, could get data from other people, who are not you.
-  You can't put restrictions on them, so, you should make a node BEFORE them, if you want to restrict them
-  The reason, you can't is, because the moment a second parent is added, you won't be able to edit it anyway, so, lets not paint 
-  you into a corner eh?  
-*/
-
   let filter = ''
   
   $: filtered_collections = nodes.filter(x => x.type == 'collection' && x._id.includes(filter))
@@ -52,14 +59,15 @@
     <input bind:value={filter}>
 
     <h3>Collections</h3>
-    <NodeList source={true} target={false} items={filtered_collections} on:selectItem={e => node = e.detail}/>
-    <button>Add New Collection</button>  
-
+    <NodeList items={filtered_collections} on:selectItem={e => node = e.detail}/>
+      {#if me?.canAddCollectionTo}
+        <button on:click="{() => showAddCollection = true}">Add New Collection</button>
+      {/if}
     <h3>Tags</h3>
-    <NodeList source={true} target={false} items={filtered_tags} on:selectItem={e => node = e.detail}/>
+    <NodeList items={filtered_tags} on:selectItem={e => node = e.detail}/>
 
     <h3>Users</h3>
-    <NodeList source={true} target={false} items={filtered_users} on:selectItem={e => node = e.detail}/>
+    <NodeList items={filtered_users} on:selectItem={e => node = e.detail}/>
   </div>
 
   <div class="col-xs-10">
@@ -67,19 +75,19 @@
       <h2><span class='{node.type} pill'>{node._id}</span></h2>
 
       <h3>Parents</h3>
-      <NodeList source={false} items={parents} on:selectItem={e => node = e.detail}/>
+      <NodeList items={parents} on:selectItem={e => node = e.detail}/>
 
       {#if node.type != 'user'}
-      <h3>Children</h3>
-      <NodeList source={false} items={children} on:selectItem={e => node = e.detail}/>
-      <button>Add Materialised View</button>
-      <button>Add Tag</button>
-      <button>Add User</button>
+        <h3>Children</h3>
+        <NodeList items={children} on:selectItem={e => node = e.detail}/>
+        <button on:click="{() => showAddMaterialisedView = true}">Add Materialised View</button>
+        <button on:click="{() => showAddTag = true}">Add Tag</button>
+        <button on:click="{() => showAddUser = true}">Add User</button>
       {/if}
 
       <h3>Admined By</h3>
       <NodeList source={false} items={adminedBy} on:selectItem={e => node = e.detail}/>
-      <button>Add Admin</button>
+      <button on:click="{() => showAddAdmin = true}">Add Admin</button>
 
       {#if node.type == 'user'}
         <h3>Admins</h3>
@@ -87,10 +95,9 @@
       {/if}
 
       {#if node.type == 'collection'}
-      <h3>Schema</h3>
-      <Schema schema={JSON.stringify(node.schema,null,2)} node_id={node._id} on:saved={update}/>
+        <h3>Schema</h3>
+        <Schema schema={JSON.stringify(node.schema,null,2)} node_id={node._id} on:saved={update}/>
       {/if}
-
 
       <h3>Permissions</h3>
       {#if node.org}
@@ -103,6 +110,37 @@
       {/if}
     {/if}
   </div>
+
+{#if showAddCollection}
+  <Modal on:close={() => {showAddCollection = false; getData()}} let:close>
+    <AddCollectionForm admin={me} {close}/>
+  </Modal>
+{/if}
+
+{#if showAddUser}
+  <Modal on:close={() => {showAddUser = false; getData()}} let:close>
+    <AddUserForm admin={me} {close}/>
+  </Modal>
+{/if}
+
+{#if showAddTag}
+  <Modal on:close={() => {showAddTag = false; getData()}} let:close>
+    <AddTagForm {nodes} {close} parent={node._id}/>
+  </Modal>
+{/if}
+
+{#if showAddMaterialisedView}
+  <Modal on:close={() => {showAddMaterialisedView = false; getData()}} let:close>
+    <AddMaterialisedViewForm admin={me} {close}/>
+  </Modal>
+{/if}
+
+{#if showAddAdmin}
+  <Modal on:close={() => {showAddAdmin = false; getData()}} let:close>
+    <AddAdminForm admin={me} {close}/>
+  </Modal>
+{/if}
+
 </div>
 
 
