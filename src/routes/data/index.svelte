@@ -35,15 +35,17 @@
   let copytext
   let tokentext = "tokentext"
   
-  $: collection && (layerlist = collection.mappableFields)
+  $: layerlist = collection?.mappableFields??[]
+  $:console.log(collection)
   
   function displayname(collection){
     return collection.db +"/"+collection.collection 
   }
   
   function mappable_fields(collection){
+    // if (collection === undefined){return []}
     let maplayers = []
-    Object.entries(collection.schema.properties).map(d=>{
+    Object.entries(collection?.schema?.properties??{}).map(d=>{
       if(d[1].map){
         d[1].map.selection = []
         maplayers.push({
@@ -58,7 +60,7 @@
 
   function time_fields(collection){
     let timefields = []
-    Object.entries(collection.schema.properties).map(d=>{
+    Object.entries(collection?.schema?.properties??{}).map(d=>{
       if(d[1].bsonType == "date"){timefields.push(d[0])}
     })
     return timefields
@@ -139,7 +141,7 @@
 
   const collectionchanged = function(a,b){
     currentlayer = collection.currentlayer
-    selection = collection.mappableFields[collection.currentlayer].selection ? collection.mappableFields[collection.currentlayer].selection : []
+    selection = collection?.mappableFields[collection.currentlayer]?.selection ? collection.mappableFields[collection.currentlayer].selection : []
   }
 
   const clearmapselection = function(){
@@ -158,8 +160,8 @@
   }
 
   let service
-  $: if (collection){collection.mappableFields[collection.currentlayer].selection = selection}
-  $: if(collection){dbfield = collection.mappableFields[collection.currentlayer].db.field} 
+  $: if (collection && collection.mappableFields.length){collection.mappableFields[collection.currentlayer].selection = selection}
+  $: if(collection && collection.mappableFields.length){dbfield = collection.mappableFields[collection.currentlayer].db.field} else {dbfield=null} 
   $: if(collection){service = collection.displayName}
   $: match = make_match(selection,dbfield,datefield,startDate,endDate)
   $: copytext = option.copytext(match,table,r)

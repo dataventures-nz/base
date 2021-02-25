@@ -88,6 +88,7 @@
       <a class = item href="/linegraph">Simple Line</a>
       <a class = item href="/populationJoy">Joy</a>
     </div>
+    <a class = item href="/populationProducts">Pop</a>
     <a class = item href='/tnz_product'>TNZ Prototype</a>
   </div>
   <div class = rightitems>
