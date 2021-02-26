@@ -37,5 +37,6 @@ export const addLink = (parent,child) => put_admin("createLink",{parent,child})
 export const addNewTag = (parent,child) => put_admin("addNode",{parent,child})
 
 export const updateSchema = (node, schema) => fetch_json("PUT", admin_url('schema'), {node,schema})
+export const getSchema = (node) => fetch_json("POST", admin_url('schema'), {node})
 
 export const normalise = (q) => EJSON.serialize(q)

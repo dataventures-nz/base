@@ -1,30 +1,35 @@
 <script>
-import Cursor from '$components/charts/linegraph/Cursor.svelte'
-import LineGraph from '$components/charts/linegraph/LineGraph.svelte'
-import StackedArea from '../../components/charts/linegraph/StackedArea.svelte'
-import { xor_only, single_only } from '$components/map/select_modes.mjs'
-import QueryMap from './QueryMap.svelte'
-import VertCursor from './VertCursor.svelte'
-import BoxCursor from './BoxCursor.svelte'
-import DatePicker from '$components/datepicker/DatePicker.svelte'
-import { query } from '$components/api.mjs'
-import ChartPrinter from '$components/charts/ChartPrinter.svelte'
-import * as d3 from "d3"
-import * as df from "date-fns"
+  import {mappable_fields,time_fields} from '../../components/_utils/schemautils.js'
+  import Cursor from '$components/charts/linegraph/Cursor.svelte'
+  import LineGraph from '$components/charts/linegraph/LineGraph.svelte'
+  import StackedArea from '../../components/charts/linegraph/StackedArea.svelte'
+  import { xor_only, single_only } from '$components/map/select_modes.mjs'
+  import QueryMap from './QueryMap.svelte'
+  import VertCursor from './VertCursor.svelte'
+  import BoxCursor from './BoxCursor.svelte'
+  import DatePicker from '$components/datepicker/DatePicker.svelte'
+  import { query, getSchema} from '$components/api.mjs'
+  import ChartPrinter from '$components/charts/ChartPrinter.svelte'
+  import * as d3 from "d3"
+  import * as df from "date-fns"
 
 
-let filename = "graph"
-let datefield = "time"
-let table = "hourly_materialised"
-let startDate = new Date(2020,3,1)
-let endDate = new Date(2020,5,1)
-let layerlist = []
-let allowedlayers = ["sa2_2018_code"]
-let currentlayer = 0
-let selection = []
-let dbfield = ""
+  let filename = "graph"
+  let datefield = "time"
+  let layerlist
+  let table = "hourly_materialised"
+  let startDate = new Date(2020,3,1)
+  let endDate = new Date(2020,5,1)
+  let currentlayer = 0
+  let selection = []
+  let dbfield = ""
+  const db = 'population'
 
+  function setupMap(){
 
+  }
+
+ let maplayerpromise = getSchema(`&${db}/${table}`).then(d=>mappable_fields(d)).then(d=>{console.log(d);layerlist = d})
 
 function make_match(selection,dbfield,datefield,startDate,endDate){
   let newmatch = {}
@@ -125,7 +130,7 @@ let layers = [
     return ["something is wrong"]
   }  
 
-
+$:console.log(currentlayer)
 </script>
 
 <style type="text/scss">
@@ -135,7 +140,7 @@ let layers = [
 
 	input {
     cursor: pointer;
-    display: block;
+    display: inline-block;
     font-size: 1em;
     max-width: 100%;
     outline: thin;
@@ -169,10 +174,29 @@ let layers = [
    	<div class="col-md-5">
       <div class=box>
         <p>Select an area</p>
-          <!-- <QueryMap height = 700 selectMode={xor_only} {allowedlayers} bind:layerlist currentlayer={0} ></QueryMap> -->
+        {#await maplayerpromise }
+        Waiting for map
+        {:then maplayers}
+          <QueryMap height = 700 selectMode={xor_only} bind:layerlist {currentlayer} ></QueryMap>
+        {/await}
       </div>
 		</div>
    	<div class="col-md-7">
+      <div class="row">
+        <div class="col-md-12">
+          <div class=box>
+            Pick a map layer for aggregation:<br/>
+            {#await maplayerpromise }
+            waiting for buttons
+            {:then maplayers}
+              {#each layerlist as layer,i}
+                <input type="radio" id={layer.map.name} name="layer" value={i} on:click={()=>currentlayer=i}>
+                <label for={layer.map.name}>{layer.map.name}</label> <br/>
+              {/each}
+            {/await}
+          </div>
+        </div>
+      </div>
       <div class="row">
         <div class="col-md-5">
           <div class=box>

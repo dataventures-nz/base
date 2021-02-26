@@ -6,8 +6,7 @@
   import {xor_only} from '../../components/map/select_modes.js'
   import QueryMap from './QueryMap.svelte'
   import {download} from '../../components/_utils/download.js'
-  // import default_layerlist from "./field_to_layer.json"
-  import GroupedDropdown from '../../components/DropdownTree/GroupedDropdown.svelte';
+  import {mappable_fields,time_fields} from '../../components/_utils/schemautils.js'
   import Datepicker from '../../components/datepicker/DatePicker.svelte';
   import CopyBox from '../../components/CopyBox.svelte';
   import Tabs from '../../components/tabs/Tabs.svelte';
@@ -40,30 +39,6 @@
   
   function displayname(collection){
     return collection.db +"/"+collection.collection 
-  }
-  
-  function mappable_fields(collection){
-    // if (collection === undefined){return []}
-    let maplayers = []
-    Object.entries(collection?.schema?.properties??{}).map(d=>{
-      if(d[1].map){
-        d[1].map.selection = []
-        maplayers.push({
-          db:{field:d[0]},
-          map:d[1].map,
-          ui:{visible:false,include:true}
-        })
-      }
-    })
-    return maplayers
-  }
-
-  function time_fields(collection){
-    let timefields = []
-    Object.entries(collection?.schema?.properties??{}).map(d=>{
-      if(d[1].bsonType == "date"){timefields.push(d[0])}
-    })
-    return timefields
   }
 
   async function get_allowed_db(){
