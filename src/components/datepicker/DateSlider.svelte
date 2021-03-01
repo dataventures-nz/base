@@ -1,0 +1,56 @@
+<script>
+
+  export let extent = [new Date(2020,0,1), new Date(2020,1,1) ]
+  export let start = new Date(2020,0,10)
+  export let end = new Date(2020,0,15) 
+  import * as d3 from "d3"
+  let width = 1000
+  let slider,axisnode
+
+  let scale = d3.scaleTime()
+  $: scale.range([50,width-50])
+  $: scale.domain(extent) 
+
+  function onbrush(e){
+    start = new Date(scale.invert(e.selection[0]))
+    end = new Date(scale.invert(e.selection[1]))
+	}
+
+  const brush = d3.brushX()
+		.extent([[50,50], [width-50,70]]) //[[left,top][right,bottom]]
+		.handleSize(3)
+		.on("brush", onbrush)
+
+  $: axis = d3.axisBottom(scale)  
+
+$: {
+    const selection = d3.select(slider)
+    selection.call(brush)
+    selection.selectAll(".handle").attr("fill","green")
+    selection.select('.selection').attr("fill","green").attr('fill-opacity',0.8).attr("stroke","none")
+  }
+
+$: {
+    const a = d3.select(axisnode)
+    a.call(axis)
+  }
+
+$: brush.move(d3.select(slider),[scale(start),scale(end)])
+
+</script>
+
+<style type="text/scss">
+ svg{
+   background-color: aquamarine;
+   }
+</style>
+
+<div id=slider_div>
+
+  <svg height="100px" {width}>
+    <rect fill = pink height=20px width = {width-100} transform = translate(50,30)></rect>
+    <g bind:this = {slider}></g>
+    <g bind:this = {axisnode} transform = translate(0,70)/>
+  </svg>
+
+</div>

@@ -1,13 +1,15 @@
 <script>
   import {mappable_fields,time_fields} from '../../components/_utils/schemautils.js'
-  import Cursor from '$components/charts/linegraph/Cursor.svelte'
+  
   import LineGraph from '$components/charts/linegraph/LineGraph.svelte'
   import StackedArea from '../../components/charts/linegraph/StackedArea.svelte'
   import { xor_only, single_only } from '$components/map/select_modes.mjs'
   import QueryMap from './QueryMap.svelte'
+  import Cursor from '$components/charts/linegraph/Cursor.svelte'
   import VertCursor from './VertCursor.svelte'
   import BoxCursor from './BoxCursor.svelte'
   import DatePicker from '$components/datepicker/DatePicker.svelte'
+  import DateSlider from '$components/datepicker/DateSlider.svelte'
   import { query, getSchema} from '$components/api.mjs'
   import ChartPrinter from '$components/charts/ChartPrinter.svelte'
   import * as d3 from "d3"
@@ -31,12 +33,12 @@
 
  let maplayerpromise = getSchema(`&${db}/${table}`).then(d=>mappable_fields(d)).then(d=>{console.log(d);layerlist = d})
 
-function make_match(selection,dbfield,datefield,startDate,endDate){
-  let newmatch = {}
-  if (dbfield && selection.length){
-    const idlist = selection.map(d=>+d.area_id)
-    newmatch[dbfield] = {$in:idlist}
-  }
+  function make_match(selection,dbfield,datefield,startDate,endDate){
+    let newmatch = {}
+    if (dbfield && selection.length){
+      const idlist = selection.map(d=>+d.area_id)
+      newmatch[dbfield] = {$in:idlist}
+    }
 
   if(datefield && (startDate || endDate)){
     newmatch[datefield]= {}
@@ -77,16 +79,11 @@ function addtodataarrays(selection){
 //   dataarrays = newdataarrays
 // }
 
-let data2 = [{x:0,y:0},{x:0.5,y:1},{x:1,y:0}]
-
 let svg
 let width
 let chartdiv
 $: if (chartdiv){width=(chartdiv.getBoundingClientRect().width)-12}
 
-const i1 = [0.5,0.8]
-const i2="zero"
-const i3 = [new Date(2020,3,1),0]
 
 let layers = [
     {
@@ -130,7 +127,11 @@ let layers = [
     return ["something is wrong"]
   }  
 
-$:console.log(currentlayer)
+  let extent = [new Date(2020,5,1), new Date(2020,6,1) ]
+  let sd = new Date(2020,5,10)
+  let ed = new Date(2020,5,15)
+  $: console.log({ed,sd})
+
 </script>
 
 <style type="text/scss">
@@ -235,7 +236,7 @@ $:console.log(currentlayer)
         </LineGraph>
       </div>
       <div class=box>
-        filter slider
+        <DateSlider bind:start={sd} bind:end={ed} {extent}/>
       </div>
 		</div>
 	</div>
