@@ -1,9 +1,8 @@
 <script>
   import {mappable_fields,time_fields} from '../../components/_utils/schemautils.js'
-  
   import LineGraph from '$components/charts/linegraph/LineGraph.svelte'
   import StackedArea from '../../components/charts/linegraph/StackedArea.svelte'
-  import { xor_only, single_only } from '$components/map/select_modes.mjs'
+  import { xor_only} from '$components/map/select_modes.mjs'
   import QueryMap from './QueryMap.svelte'
   import Cursor from '$components/charts/linegraph/Cursor.svelte'
   import VertCursor from './VertCursor.svelte'
@@ -22,16 +21,28 @@
   let table = "hourly_materialised"
   let startDate = new Date(2020,3,1)
   let endDate = new Date(2020,5,1)
+  let extent = [new Date(2020,3,1), new Date(2020,6,1) ]
   let currentlayer = 0
   let selection = []
   let dbfield = ""
   const db = 'population'
 
-  function setupMap(){
+  let maplayerpromise = getSchema(`&${db}/${table}`)
+    .then(d=>mappable_fields(d))
+    .then(d=>{layerlist = d})
 
+  async function getyears(){
+    let now = (new Date()).getFullYear()
+    let startquery = [{"$sort": {"time": 1}}, {"$limit": 1}, {"$project": {"time": 1}}]
+    let s = await query("population",table,startquery).then(d=>new Date(d[0].time))
+    let start = s.getFullYear()
+    let n = now-start    
+    console.log({now,start})
+    console.log(now-start)
+    return Array(n+1).fill().map((d,i)=>i+start+1)
   }
 
- let maplayerpromise = getSchema(`&${db}/${table}`).then(d=>mappable_fields(d)).then(d=>{console.log(d);layerlist = d})
+  $: console.log(getyears())
 
   function make_match(selection,dbfield,datefield,startDate,endDate){
     let newmatch = {}
@@ -40,49 +51,52 @@
       newmatch[dbfield] = {$in:idlist}
     }
 
-  if(datefield && (startDate || endDate)){
-    newmatch[datefield]= {}
-    if (startDate) {newmatch[datefield].$gte = startDate}
-    if (endDate) {newmatch[datefield].$lt = endDate}  
+    if(datefield && (startDate || endDate)){
+      newmatch[datefield]= {}
+      if (startDate) {newmatch[datefield].$gte = startDate}
+      if (endDate) {newmatch[datefield].$lt = endDate}  
+    }
+    const group = {
+        "_id":"$time",
+        "time":{"$first":"$time"},
+        "count":{"$sum":"$count"},
+        "local":{"$sum":"$local"},
+        "domestic":{"$sum":"$domestic"},
+        "international":{"$sum":"$international"},
+        "unknown":{"$sum":"$unknown"}
+        }
+
+    const projection = {_id:false,time:true,count:true,local:true,domestic:true,international:true,unknown:true}
+    const pipeline = [{$match:newmatch},{$group:group},{$project:projection}]
+    return pipeline
   }
 
-  const projection = {_id:false,time:true,count:true,local:true,domestic:true,international:true,unknown:true}
-  const pipeline = [{$match:newmatch},{$project:projection}]
-  // const pipeline = [{$match:newmatch}]
+  function clean(data){
+    data.map(function(d){
+      d.Total = +d.count
+      d.Domestic = +d.domestic
+      d.International = +d.international
+      d.Local = +d.local
+      d.Unknown = +d.unknown
+      d.time = new Date(d.time)
+    })
+    data.sort((a,b)=>a.time-b.time)
+    return data
+  }
 
-  return pipeline
-}
 
-function clean(data){
-  data.map(function(d){
-    d.time = new Date(d.time)
-    d.r = +d.count
-    d.theta = d.time.getDay()+d.time.getHours()/24
-  })
-  data.sort((a,b)=>a.time-b.time)
-  return data
-}
+  // $: dbfield = layerlist[currentlayer]?.db?.field ?? ""
+  // $: if (selection){ 
+  //     selection = JSON.parse(JSON.stringify(layerlist[currentlayer].map.selection))
+  //     const match =  make_match(selection,dbfield,datefield,startDate,endDate)
+  //     const data = query("population",table,match).then(clean)
+  //     console.log(data)
+  // }
 
-let dataarrays = {}
-
-function addtodataarrays(selection){
-  const match = make_match([selection],dbfield,datefield,startDate,endDate)
-  const data = query("population",table,match).then(clean)
-  return {selection,data,color:"#" + Math.floor(Math.random()*16777215).toString(16)}
-}
-
-// $: dbfield = layerlist[currentlayer]?.db?.field ?? ""
-// $: if (selection){
-//   selection = JSON.parse(JSON.stringify(layerlist[currentlayer].map.selection))
-//   let newdataarrays = {} 
-//   selection.map(function(s){newdataarrays[s.name]=dataarrays[s.name]||addtodataarrays(s)})
-//   dataarrays = newdataarrays
-// }
-
-let svg
-let width
-let chartdiv
-$: if (chartdiv){width=(chartdiv.getBoundingClientRect().width)-12}
+  let svg
+  let width
+  let chartdiv
+  $: if (chartdiv){width=(chartdiv.getBoundingClientRect().width)-12}
 
 
 let layers = [
@@ -127,10 +141,7 @@ let layers = [
     return ["something is wrong"]
   }  
 
-  let extent = [new Date(2020,5,1), new Date(2020,6,1) ]
-  let sd = new Date(2020,5,10)
-  let ed = new Date(2020,5,15)
-  $: console.log({ed,sd})
+
 
 </script>
 
@@ -168,6 +179,10 @@ let layers = [
     <div class="col-md-12">
       <div class=box>
         some tabby thingies to choose between before and between
+        <input type="radio" id={"before"} checked name="explorer" value={"before"} on:click={()=>console.log("before")}>
+        <label for={"before"}>Before</label> 
+        <input type="radio" id={"between"} disabled name="explorer" value={"between"} on:click={()=>console.log("between")}>
+        <label for={"between"}>Between</label> 
       </div>
     </div>
   </div>
@@ -191,7 +206,7 @@ let layers = [
             waiting for buttons
             {:then maplayers}
               {#each layerlist as layer,i}
-                <input type="radio" id={layer.map.name} name="layer" value={i} on:click={()=>currentlayer=i}>
+                <input type="radio" id={layer.map.name} name="layer" checked = {i==currentlayer} value={i} on:click={()=>currentlayer=i}>
                 <label for={layer.map.name}>{layer.map.name}</label> <br/>
               {/each}
             {/await}
@@ -204,8 +219,8 @@ let layers = [
             <p> Filter by date</p>
             <div class="select control is-fullwidth">
               <div class = flex>
-                <DatePicker bind:selected = {startDate} isAllowed={(date)=>date<=endDate}/>
-                <DatePicker bind:selected = {endDate} isAllowed={(date)=>date>=startDate}/>
+                <DatePicker bind:selected = {startDate} isAllowed={(date)=>date<=endDate && date>=extent[0] && date<= extent[1]}/>
+                <DatePicker bind:selected = {endDate} isAllowed={(date)=>date>=startDate && date>=extent[0] && date<= extent[1]}/>
               </div>
             </div>
           </div>
@@ -236,7 +251,7 @@ let layers = [
         </LineGraph>
       </div>
       <div class=box>
-        <DateSlider bind:start={sd} bind:end={ed} {extent}/>
+        <DateSlider bind:start={startDate} bind:end={endDate} {extent}/>
       </div>
 		</div>
 	</div>

@@ -40,15 +40,13 @@ $: brush.move(d3.select(slider),[scale(start),scale(end)])
 </script>
 
 <style type="text/scss">
- svg{
-   background-color: aquamarine;
-   }
+
 </style>
 
 <div id=slider_div>
 
   <svg height="100px" {width}>
-    <rect fill = pink height=20px width = {width-100} transform = translate(50,30)></rect>
+    <rect fill = pink height=20px width = {width-100} transform = translate(50,50)></rect>
     <g bind:this = {slider}></g>
     <g bind:this = {axisnode} transform = translate(0,70)/>
   </svg>

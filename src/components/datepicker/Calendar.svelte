@@ -1,7 +1,7 @@
 <script>
-  import * as dfunc from 'date-fns'
+  import * as df from 'date-fns'
 
-//  console.log(dfunc)
+//  console.log(df)
   // const dispatch = createEventDispatcher();
 
   // props
@@ -13,21 +13,21 @@
   
   let firstofmonth,lastofmonth, sunday, lastday, dayarray 
   
-  // console.log(dfunc)
+  // console.log(df)
 
-  $: firstofmonth = dfunc.startOfMonth(date)
-  $: lastofmonth = dfunc.endOfMonth(date)
-  $: sunday = dfunc.startOfWeek(firstofmonth) 
+  $: firstofmonth = df.startOfMonth(date)
+  $: lastofmonth = df.endOfMonth(date)
+  $: sunday = df.startOfWeek(firstofmonth) 
   $: {// 35 or 42 days in the calendar grid. 
-      lastday = dfunc.addDays(sunday,34)
-        while(dfunc.format(lastday,"yyyyMMdd") < dfunc.format(lastofmonth,"yyyyMMdd")){
-          lastday=dfunc.addDays(lastday,7) //try 34 days, if that doesn't take us far enough, add another 7
+      lastday = df.addDays(sunday,34)
+        while(df.format(lastday,"yyyyMMdd") < df.format(lastofmonth,"yyyyMMdd")){
+          lastday=df.addDays(lastday,7) //try 34 days, if that doesn't take us far enough, add another 7
         }
-      dayarray = dfunc.eachDayOfInterval({start:sunday,end:lastday})
+      dayarray = df.eachDayOfInterval({start:sunday,end:lastday})
       } 
 
   // const clickhandler = (day) => isAllowed(day) && date = day    
-
+$:console.log({dayarray,date})
 </script>
 
 <style>
@@ -89,7 +89,7 @@
         class:cell={true}
         class:highlight={isAllowed(day)}
         class:disabled={!isAllowed(day)}
-        class:selected={+day==+date}
+        class:selected={+day==+df.startOfDay(date)}
         class:notthismonth={day.getMonth()!=date.getMonth()}>
         {day.getDate()}
       </div>
