@@ -58,6 +58,8 @@
     layerlist[currentlayer] && (layerlist[currentlayer].ui.visible = true)
   }
 
+  $:console.log(selection)
+
 
 </script>
 

@@ -1,4 +1,5 @@
 <script>
+  import { onMount } from 'svelte';
   import {mappable_fields,time_fields} from '../../components/_utils/schemautils.js'
   import LineGraph from '$components/charts/linegraph/LineGraph.svelte'
   import StackedArea from '../../components/charts/linegraph/StackedArea.svelte'
@@ -19,7 +20,7 @@
   let datefield = "time"
   let layerlist
   let table = "hourly_materialised"
-  let startDate = new Date(2020,3,1)
+  let startDate = new Date(2020,4,18)
   let endDate = new Date(2020,5,1)
   let extent = [new Date(2020,3,1), new Date(2020,6,1) ]
   let currentlayer = 0
@@ -27,9 +28,11 @@
   let dbfield = ""
   const db = 'population'
 
-  let maplayerpromise = getSchema(`&${db}/${table}`)
+  let mapLayerPromise = getSchema(`&${db}/${table}`)
     .then(d=>mappable_fields(d))
     .then(d=>{layerlist = d})
+
+  
 
   async function getyears(){
     let now = (new Date()).getFullYear()
@@ -37,16 +40,16 @@
     let s = await query("population",table,startquery).then(d=>new Date(d[0].time))
     let start = s.getFullYear()
     let n = now-start    
-    console.log({now,start})
-    console.log(now-start)
     return Array(n+1).fill().map((d,i)=>i+start+1)
   }
 
-  $: console.log(getyears())
+  let gotyears
+  onMount(()=>gotyears=getyears())
+  $: console.log({gotyears})
 
   function make_match(selection,dbfield,datefield,startDate,endDate){
     let newmatch = {}
-    if (dbfield && selection.length){
+    if (dbfield && selection && selection.length){
       const idlist = selection.map(d=>+d.area_id)
       newmatch[dbfield] = {$in:idlist}
     }
@@ -72,7 +75,7 @@
   }
 
   function clean(data){
-    data.map(function(d){
+    data.forEach(function(d){
       d.Total = +d.count
       d.Domestic = +d.domestic
       d.International = +d.international
@@ -80,18 +83,28 @@
       d.Unknown = +d.unknown
       d.time = new Date(d.time)
     })
+
     data.sort((a,b)=>a.time-b.time)
     return data
   }
 
+  console.log({dbfield,layerlist,currentlayer})
 
-  // $: dbfield = layerlist[currentlayer]?.db?.field ?? ""
-  // $: if (selection){ 
-  //     selection = JSON.parse(JSON.stringify(layerlist[currentlayer].map.selection))
-  //     const match =  make_match(selection,dbfield,datefield,startDate,endDate)
-  //     const data = query("population",table,match).then(clean)
-  //     console.log(data)
-  // }
+  // $: if (layerlist){dbfield = layerlist[currentlayer]?.db?.field ?? ""}
+  $: dbfield = layerlist?.[currentlayer]?.db?.field ?? ""
+  // $: console.log(dbfield)
+
+  let data
+  $: if (layerlist?.[currentlayer]?.map?.selection){ 
+      selection = JSON.parse(JSON.stringify(layerlist[currentlayer].map.selection))
+      if (selection?.length){
+        const match =  make_match(selection,dbfield,datefield,startDate,endDate)
+        data = query("population",table,match).then(clean)
+      }
+  }
+
+$: console.log(selection)
+// $: console.log(data)
 
   let svg
   let width
@@ -141,7 +154,9 @@ let layers = [
     return ["something is wrong"]
   }  
 
-
+let year1
+let year2
+$: console.log(year1)
 
 </script>
 
@@ -190,7 +205,7 @@ let layers = [
    	<div class="col-md-5">
       <div class=box>
         <p>Select an area</p>
-        {#await maplayerpromise }
+        {#await mapLayerPromise }
         Waiting for map
         {:then maplayers}
           <QueryMap height = 700 selectMode={xor_only} bind:layerlist {currentlayer} ></QueryMap>
@@ -202,7 +217,7 @@ let layers = [
         <div class="col-md-12">
           <div class=box>
             Pick a map layer for aggregation:<br/>
-            {#await maplayerpromise }
+            {#await mapLayerPromise }
             waiting for buttons
             {:then maplayers}
               {#each layerlist as layer,i}
@@ -233,22 +248,53 @@ let layers = [
       </div>
       
       <div class=box>
+        <div>
+        {#if gotyears}
+          {#await gotyears} 
+          {:then years} 
+            <select name = year1 id= year1 on:change={(e)=>year1 = e.target.options.selectedIndex}>
+              {#each years as yr,i}
+                <option value={i}>{yr}</option>
+              {/each}  
+            </select>
+          {/await}
+        {/if}
+        </div>
+        <div>
         <LineGraph xtime={true} width = {800} ysuppressZero={false} intercepts = {"bottom_left"} >
-          <!-- <StackedArea data = {datefilter(d.data)} xaccessor={d=>d.time} {layers} bind:stacked_data={stack}></StackedArea>
+          {#await data}
+          {:then data}
+          <StackedArea data = {data} xaccessor={d=>d.time} {layers} bind:stacked_data={stack}></StackedArea>
           <Cursor let:x let:y let:sx let:sy>
             <VertCursor {x} ></VertCursor>
             <BoxCursor {x} content = {content(sx)}></BoxCursor>
-          </Cursor> -->
+          </Cursor>
+          {/await}
         </LineGraph>
+        </div>
       </div>
-      <div class=box>
-        <LineGraph xtime={true} width = {800} ysuppressZero={false} intercepts = {"bottom_left"} >
-          <!-- <StackedArea data = {datefilter(d.data)} xaccessor={d=>d.time} {layers} bind:stacked_data={stack}></StackedArea>
-          <Cursor let:x let:y let:sx let:sy>
-            <VertCursor {x} ></VertCursor>
-            <BoxCursor {x} content = {content(sx)}></BoxCursor>
-          </Cursor> -->
-        </LineGraph>
+      <div class=box> 
+        <div>
+          {#if gotyears}
+            {#await gotyears} 
+            {:then years} 
+              <select name = year2 id= year2 on:change={(e)=>year2 = e.target.options.selectedIndex}>
+                {#each years as yr,i}
+                  <option value={i}>{yr}</option>
+                {/each}  
+              </select>
+            {/await}
+          {/if}
+          </div>
+        <div>
+          <LineGraph xtime={true} width = {800} ysuppressZero={false} intercepts = {"bottom_left"} >
+            <!-- <StackedArea data = {datefilter(d.data)} xaccessor={d=>d.time} {layers} bind:stacked_data={stack}></StackedArea>
+            <Cursor let:x let:y let:sx let:sy>
+              <VertCursor {x} ></VertCursor>
+              <BoxCursor {x} content = {content(sx)}></BoxCursor>
+            </Cursor> -->
+          </LineGraph>
+        </div>
       </div>
       <div class=box>
         <DateSlider bind:start={startDate} bind:end={endDate} {extent}/>
