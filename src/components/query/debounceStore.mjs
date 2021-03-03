@@ -9,6 +9,9 @@ export const createDebounceStore = (initialValue, fn) => {
   let currentValue = undefined
   let kick = false
 
+  // TODO: put in starting as a stage. setting processing to false, when there IS processing happening seems "bad"
+  // having the system start with processing == true when it isn't doesn't seem so good either.
+
   const setProcessing = (x) => {processing = x; currentlyProcessing.set(x)} 
 
   const complete = (result) => {
