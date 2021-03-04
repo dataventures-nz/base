@@ -18,15 +18,22 @@
     }
   ]
   export let stacked_data
-
   let {height,width,margin,xScale,yScale,xextent,yextent} =  getContext("constants");
+
+  $: layers.forEach(d=>{
+    if (typeof d.active === "undefined"){d.active = true} 
+  })
+
+  $:_layers = layers.filter(d=>d.active)
+  $: console.log(layers,_layers)
 
   $: if(xextent){xScale.setExtents(id,xextent)} 
     else {xScale.setExtents(id,data.map(xaccessor))}
+    
+  let stack = d3.stack()
 
-  let stackaccessor = (d,key)=>layers[key].accessor(d)
-
-  let stack = d3.stack().keys(Object.keys(layers)).value(stackaccessor)
+  $: stackaccessor = (d,key)=>_layers[key].accessor(d)
+  $: stacked_data = stack.keys(Object.keys(_layers)).value(stackaccessor)(data)
 
   let area = d3.area()
 
@@ -34,7 +41,6 @@
     .y1(d=>$yScale(d[1]))
     .y0(d=>$yScale(d[0]))
 
-  $: stacked_data = stack(data)
   $: toplayer = stacked_data[stacked_data.length -1]
 
   $: if(yextent){yScale.setExtents(id,yextent)} 
