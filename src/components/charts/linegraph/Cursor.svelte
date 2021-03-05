@@ -10,11 +10,13 @@
   let e
 
   $: if(e){
+    
     let rect = e.target.getBoundingClientRect();
     x = e.clientX - rect.left
     y = e.clientY - rect.top;
     sx = $xScale.invert(e.offsetX)
     sy = $yScale.invert(e.offsetY)
+    console.log(e.clientX-e.offsetX,x)
   }
 
 </script>

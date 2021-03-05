@@ -25,7 +25,6 @@
   })
 
   $:_layers = layers.filter(d=>d.active)
-  $: console.log(layers,_layers)
 
   $: if(xextent){xScale.setExtents(id,xextent)} 
     else {xScale.setExtents(id,data.map(xaccessor))}
@@ -44,7 +43,7 @@
   $: toplayer = stacked_data[stacked_data.length -1]
 
   $: if(yextent){yScale.setExtents(id,yextent)} 
-    else {yScale.setExtents(id,toplayer.map(d=>d[1]))} 
+    else if (toplayer){yScale.setExtents(id,toplayer.map(d=>d[1]))} 
 
   onDestroy(() => {xScale.clear(id);yScale.clear(id)})
 
@@ -53,6 +52,6 @@
 <g style = {"transform:translate("+margin+","+margin+")"}>
   
   {#each stacked_data as a}
-    <path d={area(a)} { ...layers[a.key].style }></path>
+    <path d={area(a)} { ..._layers[a.key].style }></path>
   {/each}
 </g>

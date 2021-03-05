@@ -23,12 +23,19 @@
   let table = "hourly_materialised"
   let startDate = new Date(2020,4,18)
   let endDate = new Date(2020,5,1)
-  let extent = [new Date(2020,0,1), new Date(2020,12,31) ]
+  let extent = [new Date(2020,0,1), new Date(2020,11,31) ]
   let currentlayer = 0
   let selection = []
   let dbfield = ""
   const db = 'population'
-  let y1 = 2019
+  let y1 = 2000
+  let yearIndex1 = 0
+  let yearIndex2 = 1
+  let alignWeekdays = false
+  let weekdayOffset = 0
+
+  $: weekdayOffset = new Date(y1+yearIndex2,0,1).getDay()-new Date(y1+yearIndex1,0,1).getDay()
+  $: console.log({y1,yearIndex1, yearIndex2, weekdayOffset, alignWeekdays})
 
   let mapLayerPromise = getSchema(`&${db}/${table}`)
     .then(d=>mappable_fields(d))
@@ -38,7 +45,6 @@
     let now = (new Date()).getFullYear()
     let startquery = [{"$sort": {"time": 1}}, {"$limit": 1}, {"$project": {"time": 1}}]
     let s = await query("population",table,startquery).then(d=>new Date(d[0].time))
-    console.log({now,y1})
     y1 = s.getFullYear()
     let n = now-y1
     return Array(n+1).fill().map((d,i)=>i+y1)
@@ -46,7 +52,6 @@
 
   let gotyears
   onMount(()=>gotyears=getyears())
-  $: console.log({gotyears})
 
   function inSelection(selection,dbfield) {
     let newmatch = {}
@@ -95,8 +100,16 @@
     selection = JSON.parse(JSON.stringify(layerlist[currentlayer].map.selection))
   }
 
-  $: ch1= [{$match:{time:{$gte:new Date(new Date(startDate).setFullYear(year1+y1)),$lte:new Date(new Date(endDate).setFullYear(year1+y1))}}}]
-  $: ch2= [{$match:{time:{$gte:new Date(new Date(startDate).setFullYear(year2+y1)),$lte:new Date(new Date(endDate).setFullYear(year2+y1))}}}]
+  $: ch1= [{$match:{time:{$gte:new Date(new Date(startDate).setFullYear(yearIndex1+y1)),$lte:new Date(new Date(endDate).setFullYear(yearIndex1+y1))}}}]
+  $: ch2= [
+    {
+      $match:{
+        time:{
+          $gte:df.add(new Date(new Date(startDate).setFullYear(yearIndex2+y1)),{days:alignWeekdays? -1*weekdayOffset:0}),
+          $lte:df.add(new Date(new Date(endDate).setFullYear(yearIndex2+y1)),{days:alignWeekdays? -1*weekdayOffset:0})
+        }
+      }
+    }]
 
   let chartdiv
   $: if (chartdiv){width=(chartdiv.getBoundingClientRect().width)-12}
@@ -129,30 +142,22 @@
     }
   ]
 
-$:console.log({layers})
+  let stack1
+  let stack2
 
-  let stack
-  function content(sx){
-
-    // let data = stack[1].map(d=>d.data)
-    if (stack){
-      
-      let m = d3.minIndex(stack[1],d=>Math.abs(d.data.time-sx))
-      
-      if (stack[1][m]){
-      let d = stack[1][m]["data"]
-      return ["time: "+d.time,"total: "+d.count,
+  function content(sx,stack){
+    if (stack?.length){
+      let m = d3.minIndex(stack[0],d=>Math.abs(d.data.time-sx))
+      if (stack[0][m]){
+      let d = stack[0][m]["data"]
+      return ["time: "+df.format(d.time,"haaa, ccc do MMM Y"),"total: "+d.count,
       "visitors: "+((d.domestic*1)+(d.international*1)+(d.unknown*1))]
       } else {
         return ["something else is wrong"]
       }
     }
-    return ["something is wrong"]
+    return ["no stack"]
   }  
-
-let year1
-let year2
-$: console.log(year1)
 
 </script>
 
@@ -248,21 +253,29 @@ $: console.log(year1)
           <div class = box>
             <div id = key>
               {#each layers as layer}
-                <button style={"background-color:"+layer.style.fill+";color:black"} on:click={()=>layer.active=!layer.active} >{layer.name}</button>
+                <button 
+                  style={"background-color:"+(layer.active?layer.style.fill:"white")+";color:black"} 
+                  on:click={()=>layer.active=!layer.active} >
+                  {layer.name}
+                </button>
               {/each}
             </div>
           </div>
+          <div class = box>
+            <input type="checkbox" id="align" name="align"
+            checked = {alignWeekdays} on:change={()=>alignWeekdays=!alignWeekdays}>
+            <label for="align">Align Day of Week</label>
+          </div>
         </div>
-      </div>
-      
+      </div> 
       <div class=box>
         <div>
         {#if gotyears}
           {#await gotyears} 
           {:then years} 
-            <select name = year1 id= year1 on:change={(e)=>year1 = e.target.options.selectedIndex}>
+            <select name = year1 id= year1 on:change={(e)=>yearIndex1 = e.target.options.selectedIndex}>
               {#each years as yr,i}
-                <option value={i}>{yr}</option>
+                <option value={i} selected = {i==0}>{yr}</option>
               {/each}  
             </select>
           {/await}
@@ -273,10 +286,10 @@ $: console.log(year1)
           <Filter pipeline={make_match(selection,dbfield,datefield)} pre = {ch1} let:data process={clean} active={!!selection.length}>
           {#await data}
           {:then _data}
-          <StackedArea data = {_data} xaccessor={d=>d.time} {layers} bind:stacked_data={stack}></StackedArea>
+          <StackedArea data = {_data} xaccessor={d=>d.time} {layers} bind:stacked_data={stack1}></StackedArea>
           <Cursor let:x let:y let:sx let:sy>
             <VertCursor {x} ></VertCursor>
-            <!-- <BoxCursor {x} content = {content(sx)}></BoxCursor> -->
+            <BoxCursor {x} content = {content(sx,stack1)}></BoxCursor>
           </Cursor>
           {/await}
           </Filter>
@@ -288,9 +301,9 @@ $: console.log(year1)
           {#if gotyears}
             {#await gotyears} 
             {:then years} 
-              <select name = year2 id= year2 on:change={(e)=>year2 = e.target.options.selectedIndex}>
+              <select name = year2 id= year2 on:change={(e)=>yearIndex2 = e.target.options.selectedIndex}>
                 {#each years as yr,i}
-                  <option value={i}>{yr}</option>
+                  <option value={i} selected={i==1}>{yr}</option>
                 {/each}  
               </select>
             {/await}
@@ -301,11 +314,11 @@ $: console.log(year1)
             <Filter pipeline={make_match(selection,dbfield,datefield)} pre = {ch2} let:data process={clean} active={!!selection.length}>
             {#await data}
             {:then _data}
-            <StackedArea data = {_data} xaccessor={d=>d.time} {layers} ></StackedArea>
-            <!-- <Cursor let:x let:y let:sx let:sy>
+            <StackedArea data = {_data} xaccessor={d=>d.time} {layers} bind:stacked_data={stack2}></StackedArea>
+            <Cursor let:x let:y let:sx let:sy>
               <VertCursor {x} ></VertCursor>
-              <BoxCursor {x} content = {content(sx)}></BoxCursor>
-            </Cursor> -->
+              <BoxCursor {x} content = {content(sx,stack2)}></BoxCursor>
+            </Cursor>
             {/await}
             </Filter>
           </LineGraph>

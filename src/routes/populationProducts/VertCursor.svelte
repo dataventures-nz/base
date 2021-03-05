@@ -18,7 +18,6 @@
     }
   ]
   let {height,width,margin,xScale,yScale,xextent,yextent} =  getContext("constants");
-  
 
 
 </script>
@@ -30,5 +29,5 @@
 </style>
 
 <g>
-  <line x1={x} x2={x} y1={0} y2={height-2*margin}  ></line>
+  <line x1={x} x2={x} y1={0} y2={height-(margin.top+margin.bottom)}  ></line>
 </g>
