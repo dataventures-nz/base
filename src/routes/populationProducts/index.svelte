@@ -34,9 +34,6 @@
   let alignWeekdays = false
   let weekdayOffset = 0
 
-  $: weekdayOffset = new Date(y1+yearIndex2,0,1).getDay()-new Date(y1+yearIndex1,0,1).getDay()
-  $: console.log({y1,yearIndex1, yearIndex2, weekdayOffset, alignWeekdays})
-
   let mapLayerPromise = getSchema(`&${db}/${table}`)
     .then(d=>mappable_fields(d))
     .then(d=>{layerlist = d})
@@ -100,19 +97,31 @@
     selection = JSON.parse(JSON.stringify(layerlist[currentlayer].map.selection))
   }
 
-  $: ch1= [{$match:{time:{$gte:new Date(new Date(startDate).setFullYear(yearIndex1+y1)),$lte:new Date(new Date(endDate).setFullYear(yearIndex1+y1))}}}]
+
+  $: s1 = new Date(new Date(startDate).setFullYear(yearIndex1+y1))
+  $: s2 = new Date(new Date(startDate).setFullYear(yearIndex2+y1)) 
+
+  $: weekdayOffset = s1.getDay() - s2.getDay()
+  $: period = df.differenceInDays(endDate,startDate)
+
+
+  $: ch1= [{
+      $match:{
+        time:{
+          $gte:s1,
+          $lte:df.addDays(s1,period)
+        }
+      }
+    }]
   $: ch2= [
     {
       $match:{
         time:{
-          $gte:df.add(new Date(new Date(startDate).setFullYear(yearIndex2+y1)),{days:alignWeekdays? -1*weekdayOffset:0}),
-          $lte:df.add(new Date(new Date(endDate).setFullYear(yearIndex2+y1)),{days:alignWeekdays? -1*weekdayOffset:0})
+          $gte:df.addDays(s2,(alignWeekdays? +1*weekdayOffset:0)),
+          $lte:df.addDays(s2,period+(alignWeekdays? +1*weekdayOffset:0))
         }
       }
     }]
-
-  let chartdiv
-  $: if (chartdiv){width=(chartdiv.getBoundingClientRect().width)-12}
 
 
   let layers = [
@@ -157,7 +166,10 @@
       }
     }
     return ["no stack"]
-  }  
+  }
+  
+  let chartbox
+  let width = 0
 
 </script>
 
@@ -268,7 +280,7 @@
           </div>
         </div>
       </div> 
-      <div class=box>
+      <div class=box bind:this ={chartbox} bind:clientWidth={width}>
         <div>
         {#if gotyears}
           {#await gotyears} 
@@ -282,7 +294,7 @@
         {/if}
         </div>
         <div>
-        <LineGraph xtime={true} width = {800} ysuppressZero={false} intercepts = {"bottom_left"} >
+        <LineGraph xtime={true} width = {width} ysuppressZero={false} intercepts = {"bottom_left"} >
           <Filter pipeline={make_match(selection,dbfield,datefield)} pre = {ch1} let:data process={clean} active={!!selection.length}>
           {#await data}
           {:then _data}
@@ -310,7 +322,7 @@
           {/if}
           </div>
         <div>
-          <LineGraph xtime={true} width = {800} ysuppressZero={false} intercepts = {"bottom_left"} >
+          <LineGraph xtime={true} width = {width} ysuppressZero={false} intercepts = {"bottom_left"} >
             <Filter pipeline={make_match(selection,dbfield,datefield)} pre = {ch2} let:data process={clean} active={!!selection.length}>
             {#await data}
             {:then _data}

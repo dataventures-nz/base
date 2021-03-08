@@ -2,6 +2,8 @@
   import * as d3 from "d3"; 
   import { createScale} from '../scaleStore.js'
   import { setContext } from 'svelte';
+  import { writable } from 'svelte/store';
+
   export let svg
   export let height = 200
   export let width = 500
@@ -16,7 +18,7 @@
   let xaxis, yaxis, x0,y0
   
   let xScale = xtime ? createScale(d3.scaleTime()) : createScale()
-  xScale.setRange([margin.left,width-margin.right])
+  $: xScale.setRange([margin.left,width-margin.right])
   let yScale = ytime ? createScale(d3.scaleTime()) : createScale()
   yScale.setRange([height-margin.bottom,margin.top])
 
@@ -40,9 +42,10 @@
   $: if(xaxis) d3.select(xaxis).call(xAxis)
   $: yAxis = d3.axisLeft($yScale)
   $: if(yaxis) d3.select(yaxis).call(yAxis)
-
-  setContext("constants",{height,width,margin,xScale,yScale,xextent,yextent})
-  
+  const constants = writable({height,width,margin,xScale,yScale,xextent,yextent})
+  $: constants.set({height,width,margin,xScale,yScale,xextent,yextent})
+  $: setContext("constants",constants)
+  $: console.log("MyWidth!!!",width)
 </script>
 
 <svg height={height} width={width} bind:this={svg}>

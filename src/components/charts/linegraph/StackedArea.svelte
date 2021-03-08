@@ -18,7 +18,13 @@
     }
   ]
   export let stacked_data
-  let {height,width,margin,xScale,yScale,xextent,yextent} =  getContext("constants");
+  // let {height,width,margin,xScale,yScale,xextent,yextent} = getContext("constants");
+  const constants=  getContext("constants")  
+  $: xScale = $constants.xScale
+  $: yScale = $constants.yScale
+  $: margin = $constants.margin
+  $: xextent = $constants.xextent
+  $: yextent = $constants.yextent
 
   $: layers.forEach(d=>{
     if (typeof d.active === "undefined"){d.active = true} 

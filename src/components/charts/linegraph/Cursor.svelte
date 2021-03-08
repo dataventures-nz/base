@@ -1,8 +1,12 @@
 <script>
   import { getContext } from 'svelte';
-  
-  let {height,width,margin,xScale,yScale,xextent,yextent} =  getContext("constants");
-  
+  const constants=  getContext("constants")  
+  $: xScale = $constants.xScale
+  $: yScale = $constants.yScale
+  $: height = $constants.height
+  $: width = $constants.width
+  $: margin = $constants.margin
+
   let sx = 0
   let sy = 0
   let x  = 0
@@ -16,8 +20,10 @@
     y = e.clientY - rect.top;
     sx = $xScale.invert(e.offsetX)
     sy = $yScale.invert(e.offsetY)
-    console.log(e.clientX-e.offsetX,x)
+
   }
+
+  $:console.log({width})
 
 </script>
 <style type="text/scss">
