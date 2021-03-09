@@ -11,13 +11,13 @@
   $: canItHappen = parent && filter
   $: filtered_tags = nodes.filter(x => (x.type == 'user' || x.type == 'tag') && x._id.includes(filter))
 
-  const makeItHappen = () => {
+  const makeItHappen = async () => {
     if (filtered_tags.map(x=>x._id).includes(filter)) {
       console.log("add link", parent, filter)
-      addLink(parent, filter)
+      await addLink(parent, filter)
     } else {
       console.log("add new tag", parent, filter)
-      addNewTag(parent, filter)
+      await addNewTag(parent, filter)
     }
     close()
   }

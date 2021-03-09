@@ -5,7 +5,7 @@
   let db
   let collection
   $: canItHappen = db && collection
-  const makeItHappen = () => { addCollection(db,collection); close() }
+  const makeItHappen = async () => { await addCollection(db,collection); close() }
 </script>
 
 <select bind:value={db}>

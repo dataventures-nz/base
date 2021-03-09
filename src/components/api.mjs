@@ -23,6 +23,7 @@ export const admin_url = (service) => `${serviceUrl}/admin/${service}`
 export const query = (dbName, collectionName, q) => fetch_csv('POST', db_url(dbName,collectionName), q)
 
 export const queryRunnerFor = url => q => fetch_csv('POST', url, q)
+export const queryRunnerFor2 = url => q => fetch_json('POST', url, q)
 
 export const get_api = (service) => fetch_json('GET', api_url(service))
 export const post_api = (service,q) => fetch_json('POST', api_url(service),q)
@@ -32,10 +33,12 @@ export const listCollections = (db) => get_api(`/${db}`)
 export const listNodes = () => get_api(`/admin/${db}`)
 
 const put_admin = (service,q) => fetch_json('PUT', admin_url(service),q)
+const del_admin = (service,q) => fetch_json('DELETE', admin_url(service),q)
+
 export const addCollection = (db,collection) => put_admin("db",{db,collection})
 export const addLink = (parent,child) => put_admin("createLink",{parent,child})
 export const addNewTag = (parent,child) => put_admin("addNode",{parent,child})
-
-export const updateSchema = (node, schema) => fetch_json("PUT", admin_url('schema'), {node,schema})
-
+export const deleteNode = (node) => del_admin("node",{node})
+export const updateSchema = (node, schema) => put_admin('schema', {node,schema})
+export const setRestriction = (db,collection,node,permission,restriction) => put_admin("restriction", {db,collection,node,permission,restriction})
 export const normalise = (q) => EJSON.serialize(q)
