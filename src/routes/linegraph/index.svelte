@@ -3,6 +3,7 @@ import Cursor from '$components/charts/linegraph/Cursor.svelte'
 import LineGraph from '$components/charts/linegraph/LineGraph.svelte'
 import LineTrace from '../../components/charts/linegraph/LineTrace.svelte'
 import StackedArea from '../../components/charts/linegraph/StackedArea.svelte'
+import StackedBar from '../../components/charts/linegraph/StackedBar.svelte'
 import { xor_only } from '$components/map/select_modes.mjs'
 import QueryMap from './QueryMap.svelte'
 import VertCursor from './VertCursor.svelte'
@@ -19,7 +20,7 @@ let filename = "graph"
 let datefield = "time"
 let table = "hourly_materialised"
 let startDate = new Date(2020,3,1)
-let endDate = new Date(2020,5,1)
+let endDate = new Date(2020,3,4)
 let layerlist = default_layerlist
 let allowedlayers = ["sa2_2018_code"]
 let currentlayer = 0
@@ -66,7 +67,6 @@ function addtodataarrays(selection){
 
 $: dbfield = layerlist[currentlayer].db.field
 $: if (selection){
-  console.log("heeeeeeere")
   selection = JSON.parse(JSON.stringify(layerlist[currentlayer].map.selection))
   let newdataarrays = {} 
   selection.map(function(s){newdataarrays[s.name]=dataarrays[s.name]||addtodataarrays(s)})
@@ -88,12 +88,12 @@ let layers = [
     {
       name:"y1",
       accessor: d => +d.local,
-      style:{fill:"pink",stroke:"black","fill-opacity":0.5}
+      style:{fill:"pink",stroke:"none","fill-opacity":0.5}
     },
     {
       name:"y2",
       accessor: d => +d.domestic,
-      style:{fill:"yellow",stroke:"yellow"}
+      style:{fill:"yellow",stroke:"none"}
     },
     {
       name:"y2",
@@ -103,7 +103,7 @@ let layers = [
     {
       name:"y2",
       accessor: d => +d.unknown,
-      style:{fill:"green",stroke:null}
+      style:{fill:"green",stroke:"none"}
     }
   ]
   let stack
@@ -177,7 +177,7 @@ let layers = [
       </div>
       <div class=box>
         <p>Select an area</p>
-          <QueryMap height = 700 selectMode={xor_only} {allowedlayers} bind:layerlist currentlayer={0} ></QueryMap>
+          <QueryMap height = 700 selectMode={xor_only} {allowedlayers} bind:layerlist currentlayer={4} ></QueryMap>
       </div>
 		</div>
    	<div class="col-md-7">
@@ -188,7 +188,7 @@ let layers = [
           <ChartPrinter filename={filename} svg={svg} />
         </div>
       </div>
-      <div class="row box">
+      <!-- <div class="row box">
         <div class="col-md-12" bind:this={chartdiv}>
           <LineGraph  yextent = {[-2,2]} intercepts = {"zero"}>
             <LineTrace stroke="red" data ={[{x:-3,y:0},{x:3,y:1}]}></LineTrace>
@@ -210,20 +210,17 @@ let layers = [
             {/if}
           </LineGraph>
         </div>
-      </div>
+      </div> -->
       <div class="row box">
         <div class="col-md-12">
           <LineGraph xtime={true} width = {800} ysuppressZero={false} intercepts = {"bottom_left"}>
             {#if Object.values(dataarrays)[0]}
               {#await Object.values(dataarrays)[0].data then d}
-                <StackedArea data = {d} xaccessor={d=>d.time} {layers} bind:stacked_data={stack}></StackedArea>
-                <LineTrace data = {d} xaccessor={d=>d.time} yaccessor={d=>+d.domestic+(+d.unknown)} stroke={"black"}></LineTrace> 
+                <StackedBar data = {d} xaccessor={d=>d.time} {layers} bind:stacked_data={stack} gap={0}></StackedBar>
+                <!-- <LineTrace data = {d} xaccessor={d=>d.time} yaccessor={d=>+d.count} 
+                  style={{stroke:"black","stroke-width":"2px",fill:"none"}} ></LineTrace> -->
               {/await}
             {/if}
-            <Cursor let:x let:y let:sx let:sy>
-              <VertCursor {x} ></VertCursor>
-              <BoxCursor {x} content = {content(sx)}></BoxCursor>
-            </Cursor>
           </LineGraph>
         </div>
       </div>

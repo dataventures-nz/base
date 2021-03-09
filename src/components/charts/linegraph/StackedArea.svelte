@@ -20,6 +20,7 @@
   export let stacked_data
   // let {height,width,margin,xScale,yScale,xextent,yextent} = getContext("constants");
   const constants=  getContext("constants")  
+  $: width = $constants.width
   $: xScale = $constants.xScale
   $: yScale = $constants.yScale
   $: margin = $constants.margin
@@ -38,7 +39,7 @@
   let stack = d3.stack()
 
   $: stackaccessor = (d,key)=>_layers[key].accessor(d)
-  $: stacked_data = stack.keys(Object.keys(_layers)).value(stackaccessor)(data)
+  $: if(width){ console.log("here");stacked_data = stack.keys(Object.keys(_layers)).value(stackaccessor)(data)}
 
   let area = d3.area()
 
@@ -55,7 +56,8 @@
 
 </script>
 
-<g style = {"transform:translate("+margin+","+margin+")"}>
+  <g>
+  <!-- <g style = {"transform:translate("+margin+","+margin+")"}> -->
   
   {#each stacked_data as a}
     <path d={area(a)} { ..._layers[a.key].style }></path>
