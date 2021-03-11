@@ -5,17 +5,40 @@ import _ from 'lodash'
 */
 
 
-const selectSingle = (id_accessor, e) => {
+const selectSingle = (id_accessor,e) => {
   const feature = e.detail.features[0]
   const id = id_accessor(feature)
   return (selected) =>  [id]
 }
 
-const selectXor = (id_accessor, e) => {
+const selectXor = (id_accessor,e) => {
   const feature = e.detail.features[0]
   const id = id_accessor(feature)
   // we need a comparator which knows how to compared objects, so we use json stringify  
   return (selected) => _.xorBy(selected,[id], JSON.stringify) 
+}
+
+const selectN = (n) => {
+  console.log("select n",n)
+  let i = 0  
+  return (id_accessor,e) => {
+    
+    const feature = e.detail.features[0]
+    const id = id_accessor(feature)
+    return (selected) => {     
+      if (selected.findIndex((d)=>d.id==id.id)>-1) {      
+        i = selected.findIndex((d)=>d.id==id.id)
+        selected[i] = undefined
+        console.log("path1",{i,selected})  
+        return selected
+      }
+      selected[i] = id
+      console.log(i)
+      i = (i+1) % n
+      console.log("path2",{i,selected}) 
+      return selected
+    }
+  }
 }
 
 export const ctrl_click_adds = {
@@ -41,6 +64,12 @@ export const xor_only = {
   instructions: "Click on the map to add or remove an area.",
   selectMutator: selectXor
 } 
+
+export const select_2 = {
+  name:"select up to two areas",
+  instructions: "Click on the map to add or remove an area.",
+  selectMutator: selectN(2)
+}
 
 export const all_select_modes = [
   selectXor,

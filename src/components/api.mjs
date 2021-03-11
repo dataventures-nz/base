@@ -40,3 +40,11 @@ export const updateSchema = (node, schema) => fetch_json("PUT", admin_url('schem
 export const getSchema = (node) => fetch_json("POST", admin_url('schema'), {node})
 
 export const normalise = (q) => EJSON.serialize(q)
+
+const firstQ = (field) => [{"$sort": {[field]: 1}}, {"$limit": 1}, {"$project": {[field]: 1}}]
+const lastQ = (field) => [{"$sort": {[field]: -1}}, {"$limit": 1}, {"$project": {[field]: 1}}]
+
+export const extents = (db,collection,field) => Promise.all([
+    query(db,collection,firstQ(field)).then(d => d[0][field]),
+    query(db,collection,lastQ(field)).then(d => d[0][field])
+])

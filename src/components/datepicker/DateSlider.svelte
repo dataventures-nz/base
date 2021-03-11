@@ -4,11 +4,14 @@
   export let start = new Date(2020,0,10)
   export let end = new Date(2020,0,15) 
   import * as d3 from "d3"
-  let width = 1000
+  export let width = 1000
   let slider,axisnode
 
+  $: console.log(extent)
+
   let scale = d3.scaleTime()
-  $: scale.range([50,width-50])
+  $: w = Math.max(width-50,1)
+  $: if(width){scale.range([50,w])}
   $: scale.domain(extent) 
 
   function onbrush(e){
@@ -16,8 +19,8 @@
     end = new Date(scale.invert(e.selection[1]))
 	}
 
-  const brush = d3.brushX()
-		.extent([[50,50], [width-50,70]]) //[[left,top][right,bottom]]
+  let brush = d3.brushX()
+		.extent([[50,50], [w,70]]) //[[left,top][right,bottom]]
 		.handleSize(3)
 		.on("brush", onbrush)
 
@@ -30,12 +33,13 @@ $: {
     selection.select('.selection').attr("fill","green").attr('fill-opacity',0.8).attr("stroke","none")
   }
 
-$: {
+$: if(width){
     const a = d3.select(axisnode)
     a.call(axis)
+    brush.extent([[50,50], [w,70]])
+    d3.select(slider).call(brush)
+    brush.move(d3.select(slider),[scale(start),scale(end)])
   }
-
-$: brush.move(d3.select(slider),[scale(start),scale(end)])
 
 </script>
 

@@ -60,9 +60,8 @@
   $: if(allowedlayers && !allowedlayers.find(x=> x == layerlist[currentlayer].db.field)){
     currentlayer=0
     layerlist[currentlayer].ui.visible = true
-    console.log(currentlayer,layerlist[currentlayer])
   }
-  
+
 </script>
 
 <div style=height:{height}px >

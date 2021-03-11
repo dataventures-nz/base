@@ -20,7 +20,7 @@ let filename = "graph"
 let datefield = "time"
 let table = "hourly_materialised"
 let startDate = new Date(2020,3,1)
-let endDate = new Date(2020,3,4)
+let endDate = new Date(2020,3,1)
 let layerlist = default_layerlist
 let allowedlayers = ["sa2_2018_code"]
 let currentlayer = 0
@@ -217,8 +217,8 @@ let layers = [
             {#if Object.values(dataarrays)[0]}
               {#await Object.values(dataarrays)[0].data then d}
                 <StackedBar data = {d} xaccessor={d=>d.time} {layers} bind:stacked_data={stack} gap={0}></StackedBar>
-                <!-- <LineTrace data = {d} xaccessor={d=>d.time} yaccessor={d=>+d.count} 
-                  style={{stroke:"black","stroke-width":"2px",fill:"none"}} ></LineTrace> -->
+                <LineTrace data = {d} xaccessor={d=>d.time} yaccessor={d=>+d.domestic+(+d.international)} 
+                  style={{stroke:"black","stroke-width":"0.5px",fill:"none"}} ></LineTrace>
               {/await}
             {/if}
           </LineGraph>

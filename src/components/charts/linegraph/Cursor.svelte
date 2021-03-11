@@ -23,8 +23,6 @@
 
   }
 
-  $:console.log({width})
-
 </script>
 <style type="text/scss">
   rect{

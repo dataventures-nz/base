@@ -46,7 +46,7 @@
   const constants = writable({height,width,margin,xScale,yScale,xextent,yextent,xtime,ytime})
   $: constants.set({height,width,margin,xScale,yScale,xextent,yextent,xtime,ytime})
   $: setContext("constants",constants)
-  $: console.log({xtime})
+
 </script>
 
 <svg height={height} width={width} bind:this={svg}>

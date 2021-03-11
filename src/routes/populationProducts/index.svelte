@@ -3,19 +3,22 @@
   import {mappable_fields,time_fields} from '../../components/_utils/schemautils.js'
   import LineGraph from '$components/charts/linegraph/LineGraph.svelte'
   import StackedArea from '../../components/charts/linegraph/StackedArea.svelte'
-  import { xor_only} from '$components/map/select_modes.mjs'
+  import { population_before, population_between } from './product.mjs'
   import QueryMap from './QueryMap.svelte'
   import Cursor from '$components/charts/linegraph/Cursor.svelte'
   import VertCursor from './VertCursor.svelte'
   import BoxCursor from './BoxCursor.svelte'
   import DatePicker from '$components/datepicker/DatePicker.svelte'
   import DateSlider from '$components/datepicker/DateSlider.svelte'
-  import { query, getSchema} from '$components/api.mjs'
+  import { query, getSchema, extents} from '$components/api.mjs'
   import ChartPrinter from '$components/charts/ChartPrinter.svelte'
   import * as d3 from "d3"
   import * as df from "date-fns"
   import Crossfilter from '$components/query/Crossfilter.svelte'
   import Filter from '$components/query/Filter.svelte'
+
+
+  let mode = population_between
 
   let filename = "graph"
   let datefield = "time"
@@ -23,7 +26,7 @@
   let table = "hourly_materialised"
   let startDate = new Date(2020,4,18)
   let endDate = new Date(2020,5,1)
-  let extent = [new Date(2020,0,1), new Date(2020,11,31) ]
+  // let extent = mode.dateExtents
   let currentlayer = 0
   let selection = []
   let dbfield = ""
@@ -33,6 +36,8 @@
   let yearIndex2 = 1
   let alignWeekdays = false
   let weekdayOffset = 0
+
+
 
   let mapLayerPromise = getSchema(`&${db}/${table}`)
     .then(d=>mappable_fields(d))
@@ -48,18 +53,14 @@
   }
 
   let gotyears
-  onMount(()=>gotyears=getyears())
+  let myextents = new Promise(() => {})
+  onMount(()=>{
+    gotyears=getyears()
+    myextents = extents(db,table,"time")
+    // console.log(extents(db,table,"time"))
+  })
 
-  function inSelection(selection,dbfield) {
-    let newmatch = {}
-    if (dbfield && selection && selection.length){
-      const idlist = selection.map(d=>+d.area_id)
-      newmatch[dbfield] = {$in:idlist}
-    }
-    return newmatch
-  }
-
-  function make_match(selection){
+  function make_match(){
 
     const group = {
         "_id":"$time",
@@ -84,9 +85,10 @@
       d.International = +d.international
       d.Local = +d.local
       d.Unknown = +d.unknown
-      d.time = new Date(d.time)
+      if (typeof d.time == "string"){
+        d.time = new Date(d.time.substr(0,16))
+      }
     })
-
     data.sort((a,b)=>a.time-b.time)
     return data
   }
@@ -170,6 +172,7 @@
   
   let chartbox
   let width = 0
+  console.log(mode)
 
 </script>
 
@@ -205,19 +208,20 @@
     }
   }
 
+
 </style>
 
 
 <Crossfilter db={db} collection={table}>
-  <Filter useMatches={false} brush={{...inSelection(selection,dbfield)}}></Filter>
+  <Filter useMatches={false} brush={mode.commonFilter(selection,dbfield,startDate,endDate)}></Filter>
 <section class = "container-fluid select-wrapper">
   <div class="row">
     <div class="col-md-12">
       <div class=box>
         some tabby thingies to choose between before and between
-        <input type="radio" id={"before"} checked name="explorer" value={"before"} on:click={()=>console.log("before")}>
+        <input type="radio" id={"before"} checked name="explorer" value={"before"} on:click={()=>mode = population_before}>
         <label for={"before"}>Before</label> 
-        <input type="radio" id={"between"} disabled name="explorer" value={"between"} on:click={()=>console.log("between")}>
+        <input type="radio" id={"between"} name="explorer" value={"between"} on:click={()=>mode = population_between}>
         <label for={"between"}>Between</label> 
       </div>
     </div>
@@ -229,7 +233,7 @@
         {#await mapLayerPromise }
         Waiting for map
         {:then maplayers}
-          <QueryMap height = 700 selectMode={xor_only} bind:layerlist {currentlayer} ></QueryMap>
+          <QueryMap height = 700 selectMode={mode.selectMode} bind:layerlist {currentlayer} ></QueryMap>
         {/await}
       </div>
 		</div>
@@ -254,10 +258,12 @@
           <div class=box>
             <p> Filter by date</p>
             <div class="select control is-fullwidth">
-              <div class = flex>
-                <DatePicker bind:selected = {startDate} isAllowed={(date)=>date<=endDate && date>=extent[0] && date<= extent[1]}/>
-                <DatePicker bind:selected = {endDate} isAllowed={(date)=>date>=startDate && date>=extent[0] && date<= extent[1]}/>
-              </div>
+              <!-- {#await myextents} {:then extent} -->
+                <div class = flex> 
+                  <DatePicker bind:selected = {startDate} isAllowed={(date)=>date<=endDate && date>=extent[0] && date<= extent[1]}/>
+                  <DatePicker bind:selected = {endDate} isAllowed={(date)=>date>=startDate && date>=extent[0] && date<= extent[1]}/>
+                </div>
+              <!-- {/await} -->
             </div>
           </div>
         </div>
@@ -337,8 +343,9 @@
         </div>
       </div>
       <div class=box>
-        <DateSlider bind:start={startDate} bind:end={endDate} {extent}/>
-        
+        {#await myextents} {:then extent}
+          <DateSlider bind:start={startDate} bind:end={endDate} extent={mode.dateExtents(extent)} {width}/>
+        {/await}        
       </div>
 		</div>
 	</div>

@@ -39,7 +39,7 @@
   let stack = d3.stack()
 
   $: stackaccessor = (d,key)=>_layers[key].accessor(d)
-  $: if(width){ console.log("here");stacked_data = stack.keys(Object.keys(_layers)).value(stackaccessor)(data)}
+  $: if(width){stacked_data = stack.keys(Object.keys(_layers)).value(stackaccessor)(data)}
 
   let area = d3.area()
 
