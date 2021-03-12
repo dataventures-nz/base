@@ -19,14 +19,13 @@ const selectXor = (id_accessor,e) => {
 }
 
 const selectN = (n) => {
-  console.log("select n",n)
   let i = 0  
   return (id_accessor,e) => {
     
     const feature = e.detail.features[0]
     const id = id_accessor(feature)
     return (selected) => {     
-      if (selected.findIndex((d)=>d.id==id.id)>-1) {      
+      if (selected.findIndex((d)=>d&&d.id==id.id)>-1) {      
         i = selected.findIndex((d)=>d.id==id.id)
         selected[i] = undefined
         console.log("path1",{i,selected})  

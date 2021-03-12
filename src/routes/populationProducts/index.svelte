@@ -18,7 +18,7 @@
   import Filter from '$components/query/Filter.svelte'
 
 
-  let mode = population_between
+  let mode = population_before
 
   let filename = "graph"
   let datefield = "time"
@@ -26,7 +26,6 @@
   let table = "hourly_materialised"
   let startDate = new Date(2020,4,18)
   let endDate = new Date(2020,5,1)
-  // let extent = mode.dateExtents
   let currentlayer = 0
   let selection = []
   let dbfield = ""
@@ -36,8 +35,6 @@
   let yearIndex2 = 1
   let alignWeekdays = false
   let weekdayOffset = 0
-
-
 
   let mapLayerPromise = getSchema(`&${db}/${table}`)
     .then(d=>mappable_fields(d))
@@ -99,7 +96,6 @@
     selection = JSON.parse(JSON.stringify(layerlist[currentlayer].map.selection))
   }
 
-
   $: s1 = new Date(new Date(startDate).setFullYear(yearIndex1+y1))
   $: s2 = new Date(new Date(startDate).setFullYear(yearIndex2+y1)) 
 
@@ -107,23 +103,23 @@
   $: period = df.differenceInDays(endDate,startDate)
 
 
-  $: ch1= [{
-      $match:{
-        time:{
-          $gte:s1,
-          $lte:df.addDays(s1,period)
-        }
-      }
-    }]
-  $: ch2= [
-    {
-      $match:{
-        time:{
-          $gte:df.addDays(s2,(alignWeekdays? +1*weekdayOffset:0)),
-          $lte:df.addDays(s2,period+(alignWeekdays? +1*weekdayOffset:0))
-        }
-      }
-    }]
+  // $: ch1= [{
+  //     $match:{
+  //       time:{
+  //         $gte:s1,
+  //         $lte:df.addDays(s1,period)
+  //       }
+  //     }
+  //   }]
+  // $: ch2= [
+  //   {
+  //     $match:{
+  //       time:{
+  //         $gte:df.addDays(s2,(alignWeekdays? +1*weekdayOffset:0)),
+  //         $lte:df.addDays(s2,period+(alignWeekdays? +1*weekdayOffset:0))
+  //       }
+  //     }
+  //   }]
 
 
   let layers = [
@@ -219,9 +215,9 @@
     <div class="col-md-12">
       <div class=box>
         some tabby thingies to choose between before and between
-        <input type="radio" id={"before"} checked name="explorer" value={"before"} on:click={()=>mode = population_before}>
+        <input type="radio" id={"before"} checked ={mode.population_before} name="explorer" value={"before"} on:click={()=>mode = population_before}>
         <label for={"before"}>Before</label> 
-        <input type="radio" id={"between"} name="explorer" value={"between"} on:click={()=>mode = population_between}>
+        <input type="radio" id={"between"} checked ={mode.population_between} name="explorer" value={"between"} on:click={()=>mode = population_between}>
         <label for={"between"}>Between</label> 
       </div>
     </div>
@@ -258,12 +254,14 @@
           <div class=box>
             <p> Filter by date</p>
             <div class="select control is-fullwidth">
-              <!-- {#await myextents} {:then extent} -->
+              {#await myextents} {:then extent}
                 <div class = flex> 
-                  <DatePicker bind:selected = {startDate} isAllowed={(date)=>date<=endDate && date>=extent[0] && date<= extent[1]}/>
-                  <DatePicker bind:selected = {endDate} isAllowed={(date)=>date>=startDate && date>=extent[0] && date<= extent[1]}/>
+                  <DatePicker bind:selected = {startDate} 
+                    isAllowed={(date)=>date<=endDate && date>=mode.dateExtents(extent)[0] && date<= mode.dateExtents(extent)[1]}/>
+                  <DatePicker bind:selected = {endDate} 
+                    isAllowed={(date)=>date>=startDate && date>=mode.dateExtents(extent)[0] && date<= mode.dateExtents(extent)[1]}/>
                 </div>
-              <!-- {/await} -->
+              {/await}
             </div>
           </div>
         </div>
@@ -279,16 +277,18 @@
               {/each}
             </div>
           </div>
+          {#if mode.population_before}
           <div class = box>
             <input type="checkbox" id="align" name="align"
             checked = {alignWeekdays} on:change={()=>alignWeekdays=!alignWeekdays}>
             <label for="align">Align Day of Week</label>
           </div>
+          {/if}
         </div>
       </div> 
       <div class=box bind:this ={chartbox} bind:clientWidth={width}>
         <div>
-        {#if gotyears}
+        {#if mode.population_before && gotyears}
           {#await gotyears} 
           {:then years} 
             <select name = year1 id= year1 on:change={(e)=>yearIndex1 = e.target.options.selectedIndex}>
@@ -298,10 +298,16 @@
             </select>
           {/await}
         {/if}
+        {#if mode.population_between && selection[0]}
+            {selection[0].name}
+        {/if}  
         </div>
         <div>
         <LineGraph xtime={true} width = {width} ysuppressZero={false} intercepts = {"bottom_left"} >
-          <Filter pipeline={make_match(selection,dbfield,datefield)} pre = {ch1} let:data process={clean} active={!!selection.length}>
+          <Filter pipeline={make_match()} 
+            pre = {mode.uniqueFilter(0)(dbfield,selection,s1,s2,period,weekdayOffset,alignWeekdays)} 
+            let:data process={clean} 
+            active={!!selection.length}>
           {#await data}
           {:then _data}
           <StackedArea data = {_data} xaccessor={d=>d.time} {layers} bind:stacked_data={stack1}></StackedArea>
@@ -316,7 +322,7 @@
       </div>
       <div class=box> 
         <div>
-          {#if gotyears}
+          {#if mode.population_before && gotyears}
             {#await gotyears} 
             {:then years} 
               <select name = year2 id= year2 on:change={(e)=>yearIndex2 = e.target.options.selectedIndex}>
@@ -326,10 +332,16 @@
               </select>
             {/await}
           {/if}
+          {#if mode.population_between && selection[1]}
+              {selection[1].name}
+          {/if}    
           </div>
         <div>
           <LineGraph xtime={true} width = {width} ysuppressZero={false} intercepts = {"bottom_left"} >
-            <Filter pipeline={make_match(selection,dbfield,datefield)} pre = {ch2} let:data process={clean} active={!!selection.length}>
+            <Filter pipeline={make_match()} 
+              pre = {mode.uniqueFilter(1)(dbfield,selection,s1,s2,period,weekdayOffset,alignWeekdays)} 
+              let:data process={clean} 
+              active={!!selection.length}>
             {#await data}
             {:then _data}
             <StackedArea data = {_data} xaccessor={d=>d.time} {layers} bind:stacked_data={stack2}></StackedArea>
