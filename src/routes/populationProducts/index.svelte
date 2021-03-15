@@ -103,25 +103,6 @@
   $: period = df.differenceInDays(endDate,startDate)
 
 
-  // $: ch1= [{
-  //     $match:{
-  //       time:{
-  //         $gte:s1,
-  //         $lte:df.addDays(s1,period)
-  //       }
-  //     }
-  //   }]
-  // $: ch2= [
-  //   {
-  //     $match:{
-  //       time:{
-  //         $gte:df.addDays(s2,(alignWeekdays? +1*weekdayOffset:0)),
-  //         $lte:df.addDays(s2,period+(alignWeekdays? +1*weekdayOffset:0))
-  //       }
-  //     }
-  //   }]
-
-
   let layers = [
     {
       name:"Local",
@@ -168,7 +149,9 @@
   
   let chartbox
   let width = 0
-  console.log(mode)
+  $: console.log({mode,selection})
+
+
 
 </script>
 
@@ -278,11 +261,11 @@
             </div>
           </div>
           {#if mode.population_before}
-          <div class = box>
-            <input type="checkbox" id="align" name="align"
-            checked = {alignWeekdays} on:change={()=>alignWeekdays=!alignWeekdays}>
-            <label for="align">Align Day of Week</label>
-          </div>
+            <div class = box>
+              <input type="checkbox" id="align" name="align"
+              checked = {alignWeekdays} on:change={()=>alignWeekdays=!alignWeekdays}>
+              <label for="align">Align Day of Week</label>
+            </div>
           {/if}
         </div>
       </div> 

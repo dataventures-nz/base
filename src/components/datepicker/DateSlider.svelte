@@ -7,8 +7,6 @@
   export let width = 1000
   let slider,axisnode
 
-  $: console.log(extent)
-
   let scale = d3.scaleTime()
   $: w = Math.max(width-50,1)
   $: if(width){scale.range([50,w])}

@@ -28,13 +28,10 @@ const selectN = (n) => {
       if (selected.findIndex((d)=>d&&d.id==id.id)>-1) {      
         i = selected.findIndex((d)=>d.id==id.id)
         selected[i] = undefined
-        console.log("path1",{i,selected})  
         return selected
       }
       selected[i] = id
-      console.log(i)
       i = (i+1) % n
-      console.log("path2",{i,selected}) 
       return selected
     }
   }

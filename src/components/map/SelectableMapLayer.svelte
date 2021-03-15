@@ -16,14 +16,16 @@
   const mapStore = getContext("mapStore")()
   const map = mapStore.map
 
-  // const { getMap } = getContext("map");
   var source = getContext("source_id");
 
   // selection stuff
   let selectedOnMap=[] 
-  // $: console.log("selectable map layer says", sourcelayer, selected)
+
   // stuff the map has selected which the base selection doesn't have
-  const onlyMapSelected = () => _.without(selectedOnMap,...selected)
+  const onlyMapSelected = () => { 
+    console.log(selectedOnMap,selected)
+    return _.without(selectedOnMap,...selected)
+  }
 
   // stuff the baseSelection has the map doesn't
   const notMapSelected = () => _.without(selected,...selectedOnMap)
@@ -36,12 +38,20 @@
   const sync = (s) => {
     const removing = onlyMapSelected()
     const adding = notMapSelected()
+    console.log({source})
+ 
+  map.querySourceFeatures(source, {sourceLayer: sourcelayer})
+    .map(f=>map.setFeatureState({source,sourceLayer:sourcelayer,id:f.id},{selected:false}))
+
     removing
       .map(x=>findFor(x)).flat()
       .map(function(feature){if(feature){map.setFeatureState(feature, {selected:false})}})
     adding  
       .map(x=>findFor(x)).flat()
       .map(function(feature){if(feature){map.setFeatureState(feature, {selected:true})}})
+    selected 
+      .map(x=>findFor(x)).flat()
+      .map(function(feature){if(feature){map.setFeatureState(feature, {selected:true})}})  
     selectedOnMap = s
   }
 
@@ -85,6 +95,9 @@
     const mutator = selectMode.selectMutator(id_accessor,e)
     selected = mutator(selected)
   }
+
+ $: console.log({map,selected,onlymap:onlyMapSelected(),notmap:notMapSelected()})
+
 </script>
 <style>
   :global(div.mapboxgl-popup-content) {
