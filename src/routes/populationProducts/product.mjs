@@ -55,13 +55,36 @@ function population_before_pre(chartIndex){
   return filter
 }
 
+function beforeToBetween(startDate,endDate){
+
+}
+
+function betweenToBefore(startDate,endDate){
+
+  console.log("betweenToBefore")
+  //preserves startDate and interval when moving to a one-year long timeframe
+  let days = df.differenceInDays(endDate,startDate)
+  if (days <= 1){days = 1}
+  if (days > 365-df.getDayOfYear(startDate)){days = 365-df.getDayOfYear(startDate)}  
+
+  startDate.setFullYear(2020)
+  let ed = df.addDays(startDate,days)
+  endDate.setFullYear(2020)
+  endDate.setMonth(ed.getMonth())
+  endDate.setDate(ed.getDate())
+
+}
+
 
 export const population_before = {
   population_before:true,
   selectMode:xor_only,
   commonFilter:inSelection, //commonfilter is mongo pipline applied to both charts
   uniqueFilter : population_before_pre,
-  dateExtents : (extents) => [new Date(2020,0,1), new Date(2020,11,31)]
+  dateSliderFormat : d=> df.format(d,"MMM"),
+  datePickerFormat : "d MMMM",
+  dateExtents : (extents) => [new Date(2020,0,1), new Date(2020,11,31)],
+  switch:beforeToBetween
 }
 
 
@@ -70,6 +93,9 @@ export const population_between = {
   selectMode:select_2,
   commonFilter:inInterval,
   uniqueFilter:population_between_pre,
-  dateExtents: extents => extents.map(d=>new Date(d.substr(0,16)))
+  dateSliderFormat : d=> df.format(d,"MMM yy"),
+  datePickerFormat : "d MMMM yyyy",
+  dateExtents: extents => extents.map(d=>new Date(d.substr(0,16))),
+  switch:betweenToBefore
 }
 

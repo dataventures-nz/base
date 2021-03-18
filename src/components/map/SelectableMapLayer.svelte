@@ -23,7 +23,6 @@
 
   // stuff the map has selected which the base selection doesn't have
   const onlyMapSelected = () => { 
-    console.log(selectedOnMap,selected)
     return _.without(selectedOnMap,...selected)
   }
 
@@ -38,7 +37,6 @@
   const sync = (s) => {
     const removing = onlyMapSelected()
     const adding = notMapSelected()
-    console.log({source})
  
   map.querySourceFeatures(source, {sourceLayer: sourcelayer})
     .map(f=>map.setFeatureState({source,sourceLayer:sourcelayer,id:f.id},{selected:false}))
@@ -95,8 +93,6 @@
     const mutator = selectMode.selectMutator(id_accessor,e)
     selected = mutator(selected)
   }
-
- $: console.log({map,selected,onlymap:onlyMapSelected(),notmap:notMapSelected()})
 
 </script>
 <style>

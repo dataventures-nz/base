@@ -1,9 +1,11 @@
 <script>
+  import * as df from "date-fns"
+  import * as d3 from "d3"
 
   export let extent = [new Date(2020,0,1), new Date(2020,1,1) ]
   export let start = new Date(2020,0,10)
   export let end = new Date(2020,0,15) 
-  import * as d3 from "d3"
+  export let format = null
   export let width = 1000
   let slider,axisnode
 
@@ -22,7 +24,7 @@
 		.handleSize(3)
 		.on("brush", onbrush)
 
-  $: axis = d3.axisBottom(scale)  
+  $: axis = d3.axisBottom(scale).tickFormat(format)  
 
 $: {
     const selection = d3.select(slider)

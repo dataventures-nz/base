@@ -192,15 +192,15 @@
 
 
 <Crossfilter db={db} collection={table}>
-  <Filter useMatches={false} brush={mode.commonFilter(selection,dbfield,startDate,endDate)}></Filter>
+<Filter useMatches={false} brush={mode.commonFilter(selection,dbfield,startDate,endDate)}></Filter>
 <section class = "container-fluid select-wrapper">
   <div class="row">
     <div class="col-md-12">
       <div class=box>
         some tabby thingies to choose between before and between
-        <input type="radio" id={"before"} checked ={mode.population_before} name="explorer" value={"before"} on:click={()=>mode = population_before}>
+        <input type="radio" id={"before"} checked ={mode.population_before} name="explorer" value={"before"} on:click={()=>{mode.switch(startDate,endDate);mode = population_before}}>
         <label for={"before"}>Before</label> 
-        <input type="radio" id={"between"} checked ={mode.population_between} name="explorer" value={"between"} on:click={()=>mode = population_between}>
+        <input type="radio" id={"between"} checked ={mode.population_between} name="explorer" value={"between"} on:click={()=>{mode.switch(startDate,endDate);mode = population_between}}>
         <label for={"between"}>Between</label> 
       </div>
     </div>
@@ -220,14 +220,17 @@
       <div class="row">
         <div class="col-md-12">
           <div class=box>
-            Pick a map layer for aggregation:<br/>
+            Pick a map layer for aggregation:
             {#await mapLayerPromise }
-            waiting for buttons
+            waiting for layers
             {:then maplayers}
-              {#each layerlist as layer,i}
-                <input type="radio" id={layer.map.name} name="layer" checked = {i==currentlayer} value={i} on:click={()=>currentlayer=i}>
-                <label for={layer.map.name}>{layer.map.name}</label> <br/>
-              {/each}
+              <select name=layer id=layer on:click={(e)=>currentlayer=+e.target.value}>
+                {#each layerlist as layer,i}
+                  <option id={layer.map.name} name="layer" selected = {i==currentlayer} value={i}>
+                    {layer.map.name}
+                  </option>              
+                {/each}
+              </select>
             {/await}
           </div>
         </div>
@@ -239,9 +242,11 @@
             <div class="select control is-fullwidth">
               {#await myextents} {:then extent}
                 <div class = flex> 
-                  <DatePicker bind:selected = {startDate} 
+                  <DatePicker bind:selected = {startDate}
+                    format = {mode.datePickerFormat} 
                     isAllowed={(date)=>date<=endDate && date>=mode.dateExtents(extent)[0] && date<= mode.dateExtents(extent)[1]}/>
-                  <DatePicker bind:selected = {endDate} 
+                  <DatePicker bind:selected = {endDate}
+                    format = {mode.datePickerFormat}  
                     isAllowed={(date)=>date>=startDate && date>=mode.dateExtents(extent)[0] && date<= mode.dateExtents(extent)[1]}/>
                 </div>
               {/await}
@@ -249,6 +254,7 @@
           </div>
         </div>
         <div class="col-md-7">
+
           <div class = box>
             <div id = key>
               {#each layers as layer}
@@ -268,7 +274,12 @@
             </div>
           {/if}
         </div>
-      </div> 
+      </div>
+      {#if mode.population_before}
+        <div class = box>
+          Showing {selection.map(d=>d.name).join(", ")}
+        </div>
+      {/if} 
       <div class=box bind:this ={chartbox} bind:clientWidth={width}>
         <div>
         {#if mode.population_before && gotyears}
@@ -285,23 +296,26 @@
             {selection[0].name}
         {/if}  
         </div>
-        <div>
-        <LineGraph xtime={true} width = {width} ysuppressZero={false} intercepts = {"bottom_left"} >
-          <Filter pipeline={make_match()} 
-            pre = {mode.uniqueFilter(0)(dbfield,selection,s1,s2,period,weekdayOffset,alignWeekdays)} 
-            let:data process={clean} 
-            active={!!selection.length}>
-          {#await data}
-          {:then _data}
-          <StackedArea data = {_data} xaccessor={d=>d.time} {layers} bind:stacked_data={stack1}></StackedArea>
-          <Cursor let:x let:y let:sx let:sy>
-            <VertCursor {x} ></VertCursor>
-            <BoxCursor {x} content = {content(sx,stack1)}></BoxCursor>
-          </Cursor>
-          {/await}
-          </Filter>
-        </LineGraph>
-        </div>
+        <Filter pipeline={make_match()} 
+          pre = {mode.uniqueFilter(0)(dbfield,selection,s1,s2,period,weekdayOffset,alignWeekdays)} 
+          let:data process={clean} 
+          active={!!selection.length}>
+        {#if selection[0]}
+          <div>
+            <LineGraph xtime={true} width = {width} ysuppressZero={false} intercepts = {"bottom_left"} >
+              {#await data}
+              {:then _data}
+              <StackedArea data = {_data} xaccessor={d=>d.time} {layers} bind:stacked_data={stack1}></StackedArea>
+              <Cursor let:x let:y let:sx let:sy>
+                <VertCursor {x} ></VertCursor>
+                <BoxCursor {x} content = {content(sx,stack1)}></BoxCursor>
+              </Cursor>
+              {/await}
+              
+            </LineGraph>
+          </div>
+        {/if}
+      </Filter>
       </div>
       <div class=box> 
         <div>
@@ -318,28 +332,36 @@
           {#if mode.population_between && selection[1]}
               {selection[1].name}
           {/if}    
-          </div>
-        <div>
-          <LineGraph xtime={true} width = {width} ysuppressZero={false} intercepts = {"bottom_left"} >
-            <Filter pipeline={make_match()} 
+        </div>
+        <Filter pipeline={make_match()} 
               pre = {mode.uniqueFilter(1)(dbfield,selection,s1,s2,period,weekdayOffset,alignWeekdays)} 
               let:data process={clean} 
               active={!!selection.length}>
+        {#if (mode.population_between && selection[1]) || (mode.population_before && selection[0])}
+        <div>
+          <LineGraph xtime={true} width = {width} ysuppressZero={false} intercepts = {"bottom_left"} >
             {#await data}
-            {:then _data}
+            {:then _data}           
             <StackedArea data = {_data} xaccessor={d=>d.time} {layers} bind:stacked_data={stack2}></StackedArea>
             <Cursor let:x let:y let:sx let:sy>
               <VertCursor {x} ></VertCursor>
               <BoxCursor {x} content = {content(sx,stack2)}></BoxCursor>
             </Cursor>
             {/await}
-            </Filter>
+            
           </LineGraph>
         </div>
+        {/if}
+      </Filter>
       </div>
       <div class=box>
         {#await myextents} {:then extent}
-          <DateSlider bind:start={startDate} bind:end={endDate} extent={mode.dateExtents(extent)} {width}/>
+          <DateSlider 
+            bind:start={startDate} 
+            bind:end={endDate} 
+            extent={mode.dateExtents(extent)} 
+            {width} 
+            format={mode.dateSliderFormat}/>
         {/await}        
       </div>
 		</div>

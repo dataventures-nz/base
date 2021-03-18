@@ -16,8 +16,7 @@
   export let showDays = true
   export let isAllowed = () => true;
   export let selected = new Date();
-  export let format
-
+  export let format // a date-fns format string eg "d MMMM yyyy"
   // state
   let showDatePicker;
   // handlers
