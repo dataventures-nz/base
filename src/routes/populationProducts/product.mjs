@@ -1,11 +1,13 @@
 import { xor_only, select_2 } from '$components/map/select_modes.mjs'
 import { query,extents } from '$components/api.mjs'
 import * as df from "date-fns"
+import { selection } from 'd3'
+import { get } from 'svelte/store';
 
 function inSelection(selection,dbfield) {
   let newmatch = {}
   if (dbfield && selection && selection.length){
-    const idlist = selection.map(d=>+d.area_id)
+    const idlist = selection.filter(d=>d).map(d=>+d.area_id)
     newmatch[dbfield] = {$in:idlist}
   }
   return newmatch
@@ -55,23 +57,28 @@ function population_before_pre(chartIndex){
   return filter
 }
 
-function beforeToBetween(startDate,endDate){
-
+function beforeToBetween(startDate,endDate,selection){
+  let s = get(selection)
+  console.log("beforeToBetween",s)
+  const l = s.length
+  s.splice(2,l-2)
+  selection.set(s)
 }
 
-function betweenToBefore(startDate,endDate){
+function betweenToBefore(startDate,endDate,selection){
 
-  console.log("betweenToBefore")
+  console.log("betweenToBefore",selection)
   //preserves startDate and interval when moving to a one-year long timeframe
   let days = df.differenceInDays(endDate,startDate)
   if (days <= 1){days = 1}
   if (days > 365-df.getDayOfYear(startDate)){days = 365-df.getDayOfYear(startDate)}  
-
   startDate.setFullYear(2020)
   let ed = df.addDays(startDate,days)
   endDate.setFullYear(2020)
   endDate.setMonth(ed.getMonth())
   endDate.setDate(ed.getDate())
+  
+  $selection = $selection.filter(d=>!!d)
 
 }
 

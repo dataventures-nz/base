@@ -1,5 +1,6 @@
 <script>
   import { onMount } from 'svelte';
+  import { writable } from 'svelte/store';
   import {mappable_fields,time_fields} from '../../components/_utils/schemautils.js'
   import LineGraph from '$components/charts/linegraph/LineGraph.svelte'
   import StackedArea from '../../components/charts/linegraph/StackedArea.svelte'
@@ -27,7 +28,7 @@
   let startDate = new Date(2020,4,18)
   let endDate = new Date(2020,5,1)
   let currentlayer = 0
-  let selection = []
+  // let selection = []
   let dbfield = ""
   const db = 'population'
   let y1 = 2000
@@ -35,6 +36,7 @@
   let yearIndex2 = 1
   let alignWeekdays = false
   let weekdayOffset = 0
+  const selection = writable([])
 
   let mapLayerPromise = getSchema(`&${db}/${table}`)
     .then(d=>mappable_fields(d))
@@ -92,9 +94,9 @@
 
   $: dbfield = layerlist?.[currentlayer]?.db?.field ?? ""
   
-  $: if (layerlist?.[currentlayer]?.map?.selection){
-    selection = JSON.parse(JSON.stringify(layerlist[currentlayer].map.selection))
-  }
+  // $: if (mode && layerlist?.[currentlayer]?.map?.selection){
+  //   selection = JSON.parse(JSON.stringify(layerlist[currentlayer].map.selection))
+  // }
 
   $: s1 = new Date(new Date(startDate).setFullYear(yearIndex1+y1))
   $: s2 = new Date(new Date(startDate).setFullYear(yearIndex2+y1)) 
@@ -133,6 +135,14 @@
   let stack1
   let stack2
 
+  function syncSelection(e){
+    layerlist[currentlayer].map.selection = $selection
+    if(e){
+      currentlayer=+e.target.value
+      $selection = layerlist[currentlayer].map.selection
+    }
+  }
+
   function content(sx,stack){
     if (stack?.length){
       let m = d3.minIndex(stack[0],d=>Math.abs(d.data.time-sx))
@@ -149,9 +159,8 @@
   
   let chartbox
   let width = 0
-  $: console.log({mode,selection})
-
-
+  $: console.log({mode,$selection})
+  
 
 </script>
 
@@ -192,15 +201,17 @@
 
 
 <Crossfilter db={db} collection={table}>
-<Filter useMatches={false} brush={mode.commonFilter(selection,dbfield,startDate,endDate)}></Filter>
+<Filter useMatches={false} brush={mode.commonFilter($selection,dbfield,startDate,endDate)}></Filter>
 <section class = "container-fluid select-wrapper">
   <div class="row">
     <div class="col-md-12">
       <div class=box>
         some tabby thingies to choose between before and between
-        <input type="radio" id={"before"} checked ={mode.population_before} name="explorer" value={"before"} on:click={()=>{mode.switch(startDate,endDate);mode = population_before}}>
+        <input type="radio" id={"before"} checked ={mode.population_before} name="explorer" value={"before"} 
+        on:click={()=>{mode.switch(startDate,endDate,selection);syncSelection();mode = population_before}}>
         <label for={"before"}>Before</label> 
-        <input type="radio" id={"between"} checked ={mode.population_between} name="explorer" value={"between"} on:click={()=>{mode.switch(startDate,endDate);mode = population_between}}>
+        <input type="radio" id={"between"} checked ={mode.population_between} name="explorer" value={"between"} 
+        on:click={()=>{mode.switch(startDate,endDate,selection);syncSelection();mode = population_between}}>
         <label for={"between"}>Between</label> 
       </div>
     </div>
@@ -212,7 +223,7 @@
         {#await mapLayerPromise }
         Waiting for map
         {:then maplayers}
-          <QueryMap height = 700 selectMode={mode.selectMode} bind:layerlist {currentlayer} ></QueryMap>
+          <QueryMap height = 700 selectMode={mode.selectMode} bind:layerlist {selection} {currentlayer} ></QueryMap>
         {/await}
       </div>
 		</div>
@@ -224,7 +235,7 @@
             {#await mapLayerPromise }
             waiting for layers
             {:then maplayers}
-              <select name=layer id=layer on:click={(e)=>currentlayer=+e.target.value}>
+              <select name=layer id=layer on:click={syncSelection}>
                 {#each layerlist as layer,i}
                   <option id={layer.map.name} name="layer" selected = {i==currentlayer} value={i}>
                     {layer.map.name}
@@ -277,7 +288,7 @@
       </div>
       {#if mode.population_before}
         <div class = box>
-          Showing {selection.map(d=>d.name).join(", ")}
+          Showing {$selection.map(d=>d.name).join(", ")}
         </div>
       {/if} 
       <div class=box bind:this ={chartbox} bind:clientWidth={width}>
@@ -292,15 +303,15 @@
             </select>
           {/await}
         {/if}
-        {#if mode.population_between && selection[0]}
-            {selection[0].name}
+        {#if mode.population_between && $selection[0]}
+            {$selection[0].name}
         {/if}  
         </div>
         <Filter pipeline={make_match()} 
-          pre = {mode.uniqueFilter(0)(dbfield,selection,s1,s2,period,weekdayOffset,alignWeekdays)} 
+          pre = {mode.uniqueFilter(0)(dbfield,$selection,s1,s2,period,weekdayOffset,alignWeekdays)} 
           let:data process={clean} 
-          active={!!selection.length}>
-        {#if selection[0]}
+          active={!!$selection.length}>
+        {#if $selection[0]}
           <div>
             <LineGraph xtime={true} width = {width} ysuppressZero={false} intercepts = {"bottom_left"} >
               {#await data}
@@ -329,15 +340,15 @@
               </select>
             {/await}
           {/if}
-          {#if mode.population_between && selection[1]}
-              {selection[1].name}
+          {#if mode.population_between && $selection[1]}
+              {$selection[1].name}
           {/if}    
         </div>
         <Filter pipeline={make_match()} 
-              pre = {mode.uniqueFilter(1)(dbfield,selection,s1,s2,period,weekdayOffset,alignWeekdays)} 
+              pre = {mode.uniqueFilter(1)(dbfield,$selection,s1,s2,period,weekdayOffset,alignWeekdays)} 
               let:data process={clean} 
-              active={!!selection.length}>
-        {#if (mode.population_between && selection[1]) || (mode.population_before && selection[0])}
+              active={!!$selection.length}>
+        {#if (mode.population_between && $selection[1]) || (mode.population_before && $selection[0])}
         <div>
           <LineGraph xtime={true} width = {width} ysuppressZero={false} intercepts = {"bottom_left"} >
             {#await data}

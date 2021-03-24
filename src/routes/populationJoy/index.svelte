@@ -9,11 +9,24 @@ let filename = "waterfall"
 
 let opacity = 0.3//= d3.scaleLinear().domain([0,16]).range([0.2,0.7])
 
+let chunkPostProcess = function(d){
+      let leftclone = JSON.parse(JSON.stringify(d[0]))
+      let rightclone = JSON.parse(JSON.stringify(d[d.length-1]))
+      leftclone.left =leftclone.left-10000
+      leftclone.Dec1Count = 0
+      leftclone.NYECount = 0
+      rightclone.left =rightclone.left+10000
+      rightclone.Dec1Count = 0
+      rightclone.NYECount = 0
+      d.unshift(leftclone)
+      d.push(rightclone)
+    }
+
 let options={
-  yaccessor: d=>+d.NYECount,
+  // yaccessor: d=>+d.NYECount,
   // yaccessor: d=>+d.Dec1Count,
   // yaccessor: d=>d.NYECount?Math.log2(+d.NYECount):0,
-  // yaccessor: d=> (+d.NYECount && +d.Dec1Count)? +d.NYECount/+d.Dec1Count : 0,
+  yaccessor: d=> (+d.NYECount && +d.Dec1Count)? Math.min(+d.NYECount/+d.Dec1Count,8) : 0,
   xaccessor: d=>+d.left,
   zaccessor : d=>+d.top
 }
@@ -29,9 +42,11 @@ let width
 
 let brokenaxis=0
 let position
-let x_position=0.25 //fraction of height
-let y_position = 0.05 //fraction of width
+let x_position=0.05 //fraction of height
+let y_position = 0.2 //fraction of width
 let plotwidth=0.5 //fraction of width
+let dx = 0
+let dy = 720
 let stroke="#000000"
 let fill="#ffffff"
 let background = "#eeeeee"
@@ -44,39 +59,22 @@ function clean(rawdata){
   let _groups = {}
   
   let data = rawdata.filter(d=>d.NYECount)
-  console.log({rawdata,data})
   data.sort((a,b)=>b.top-a.top)
   options.yextent=d3.extent(data,options.yaccessor)
   options.ydomain=options.yextent
   options.xdomain=d3.extent(data,options.xaccessor)
-  console.log({options})
-
-  
-
   data.map(function(d){
     d.top=+d.top
     d.left=+d.left
     if(_groups[d.top]){_groups[d.top].data.push(d)} else {_groups[d.top]={data:[d]}}
   })
-
-  //  let _values = Object.values(_groups)
-  //  _groups = Object.entries(_groups) 
-  
-
-  // let gmax = _values.sort((a,b)=>b.data.length - a.data.length)[1]
-
-  // _groups.map(d=>{
-  //   // if(d[1].data.length >= gmax.data.length){groups[d[0]] = d[1]} 
-  // })
-
   return _groups
 }
 
 $: position = [x_position,y_position]
 
-let dx
-let dy
 
+let overline = false
 $: data = d
 let chartdiv
 $: if (chartdiv){width=(chartdiv.getBoundingClientRect().width)-20}
@@ -128,7 +126,7 @@ $: console.log({width})
           <input type="number" step = 0.05 bind:value={brokenaxis} />
           <input type="number" step = 0.05 min = 0.05 max = 1 bind:value={opacity} />
           <input type="number" step = 1 bind:value={dx} />
-          <input type="number" step = 1 bind:value={dy} />
+          <input type="number" step = 10 bind:value={dy} />
         </div>
       
         <div class = "flex">
@@ -136,8 +134,11 @@ $: console.log({width})
           {#if closed}
             <ColorPicker bind:toggle={filled} bind:color={fill} label=Filled/>
           {/if}
-          <ColorPicker bind:toggle={hasbackground} bind:color={background} label=Background/> 
-        
+          <ColorPicker bind:toggle={hasbackground} bind:color={background} label=Background/>
+          <input type=checkbox id = overline bind:checked={overline} />
+          <label for=overline >Overline only</label> 
+        </div>
+        <div>
           <div style = "padding:5px">
             <label for="filename">Filename</label>
             <input type="text" placeholder ="waterfall" bind:value={filename} />
@@ -157,6 +158,7 @@ $: console.log({width})
               bind:brokenaxis={brokenaxis}
               bind:dx={dx}
               bind:dy={dy}
+              usemouse = {false}
               filename={filename}
               stroke={(d,i)=>stroke} 
               fill={(d,i)=>fill}
@@ -167,7 +169,10 @@ $: console.log({width})
               hasbackground={hasbackground}
               width={width}
               height={width*420/700}    
-              {...options}/>
+              {...options}
+              {chunkPostProcess}
+              curve = {d3.curveCardinal.tension(0)}
+              {overline}/>
           {/await}
         {/if}
         

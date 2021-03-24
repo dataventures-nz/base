@@ -40,7 +40,7 @@
  
   map.querySourceFeatures(source, {sourceLayer: sourcelayer})
     .map(f=>map.setFeatureState({source,sourceLayer:sourcelayer,id:f.id},{selected:false}))
-
+      
     removing
       .map(x=>findFor(x)).flat()
       .map(function(feature){if(feature){map.setFeatureState(feature, {selected:false})}})

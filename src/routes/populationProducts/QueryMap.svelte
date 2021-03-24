@@ -12,7 +12,12 @@
   export let layerlist
   export let allowedlayers
   export let currentlayer 
+  export let selection
+  
   let map
+
+  console.log($selection)
+  
 
   const fill = {
       "paint": {
@@ -47,7 +52,8 @@
   function reverse_accessor_for(map){
     let p = map.properties
     function reverse_accessor(d){
-      return {[p.id]:d.area_id}
+      if(d){return {[p.id]:d.area_id}}
+      return {[p.id]:-99}
     }
     return reverse_accessor
   }
@@ -77,7 +83,7 @@
             options={fill} 
             id_accessor={accessor_for(layer.map)} 
             reverse_accessor={reverse_accessor_for(layer.map)} 
-            bind:selected={layer.map.selection}/>
+            bind:selected={$selection}/>
           <MapLayer bind:visible={layer.ui.visible} id={layer.map.name+"-lines"} type="line" sourcelayer={layer.map.sourcelayer} options={lines}></MapLayer>
         </MapSource>
     {/each}

@@ -23,8 +23,12 @@ import picsaver from 'save-svg-as-png'
   export let filled = false
   export let closed = false
   export let hasbackground = false
-  export let dx
+  export let dx 
   export let dy
+  export let usemouse = true
+  export let chunkPostProcess = d=>d
+  export let curve = d3.curveLinear
+  export let overline = false
 
   let options
   $: options = {height,width,xdomain,ydomain,yextent,yaccessor,xaccessor}
@@ -32,12 +36,13 @@ import picsaver from 'save-svg-as-png'
   let yscale = d3.scaleLinear()
   let xscale = d3.scaleLinear()
   
-  const area = d3.area()
+  const area = d3.area().curve(curve)
     .x((d)=>xscale(options.xaccessor(d)))
     .y0(d=>yscale(options.yaccessor(d)))
     .y1(d=>yscale(0))
 
   const line = d3.line()
+    .curve(curve)
     .x((d)=>xscale(options.xaccessor(d)))
     .y(d=>yscale(options.yaccessor(d)))
 
@@ -46,6 +51,7 @@ import picsaver from 'save-svg-as-png'
   const split = (lines) => {
     const splitLines = lines.flatMap(line =>{
       let lastLeft = line[0].left
+
       const chunks = []
       let currentChunk = []
       line.forEach(pt => {
@@ -60,6 +66,7 @@ import picsaver from 'save-svg-as-png'
       chunks.push(currentChunk)
       return chunks
     })
+    splitLines.forEach(chunkPostProcess)
     return splitLines;
   }
 
@@ -108,8 +115,9 @@ $: {xscale.domain(options.xdomain).range([0,width*plotwidth])
     area.x((d)=>xscale(options.xaccessor(d)))
     line.x((d)=>xscale(options.xaccessor(d)))
     }
-$: dx = mousep.dx()
-$: dy = mousep.dy()
+
+
+$: if(usemouse){dx = mousep.dx();dy = mousep.dy()}
 $: y1 = yscale(options.yextent[1]-options.yextent[0])
 $: svgbackgroundstyle = hasbackground ? "background-color:"+background : "background-color:none"
 
@@ -147,7 +155,10 @@ const savepng = ()=> picsaver.saveSvgAsPng(svg,filename+".png")
         {#if !closed}
         <path fill = none stroke={stroke(d,i)}  d={line(d)}></path>
         {:else}
-          <path fill={filled ? fill(d,i):"none"} fill-opacity={fillOpacity(d,i)} stroke={stroke(d,i)} d={area(d)}></path>
+          <path fill={filled ? fill(d,i):"none"} fill-opacity={fillOpacity(d,i)} stroke={overline ? "none":stroke(d,i)} d={area(d)}></path>
+          {#if overline}
+            <path fill = none stroke={stroke(d,i)}  d={line(d)}></path>
+          {/if}
         {/if}
       </g>
     {/each}
