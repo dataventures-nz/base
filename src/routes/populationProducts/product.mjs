@@ -1,7 +1,7 @@
 import { xor_only, select_2 } from '$components/map/select_modes.mjs'
-import { query,extents } from '$components/api.mjs'
+// import { query,extents } from '$components/api.mjs'
 import * as df from "date-fns"
-import { selection } from 'd3'
+// import { selection } from 'd3'
 import { get } from 'svelte/store';
 
 function inSelection(selection,dbfield) {
@@ -78,7 +78,8 @@ function betweenToBefore(startDate,endDate,selection){
   endDate.setMonth(ed.getMonth())
   endDate.setDate(ed.getDate())
   
-  $selection = $selection.filter(d=>!!d)
+  let s = get(selection).filter(d=>!!d)
+  selection.set(s)
 
 }
 
@@ -91,7 +92,7 @@ export const population_before = {
   dateSliderFormat : d=> df.format(d,"MMM"),
   datePickerFormat : "d MMMM",
   dateExtents : (extents) => [new Date(2020,0,1), new Date(2020,11,31)],
-  switch:beforeToBetween
+  switch:betweenToBefore
 }
 
 
@@ -103,6 +104,6 @@ export const population_between = {
   dateSliderFormat : d=> df.format(d,"MMM yy"),
   datePickerFormat : "d MMMM yyyy",
   dateExtents: extents => extents.map(d=>new Date(d.substr(0,16))),
-  switch:betweenToBefore
+  switch:beforeToBetween
 }
 

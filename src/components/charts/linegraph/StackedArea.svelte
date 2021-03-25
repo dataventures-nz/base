@@ -18,11 +18,11 @@
     }
   ]
   export let stacked_data
+  export let xScale
+  export let yScale
   // let {height,width,margin,xScale,yScale,xextent,yextent} = getContext("constants");
   const constants=  getContext("constants")  
   $: width = $constants.width
-  $: xScale = $constants.xScale
-  $: yScale = $constants.yScale
   $: margin = $constants.margin
   $: xextent = $constants.xextent
   $: yextent = $constants.yextent

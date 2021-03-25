@@ -28,7 +28,6 @@
   let startDate = new Date(2020,4,18)
   let endDate = new Date(2020,5,1)
   let currentlayer = 0
-  // let selection = []
   let dbfield = ""
   const db = 'population'
   let y1 = 2000
@@ -160,7 +159,12 @@
   let chartbox
   let width = 0
   $: console.log({mode,$selection})
-  
+
+  import { createScale} from '$components/charts/scaleStore.js'
+  let externalYscale = createScale()
+  externalYscale.setRange([170,30])
+  externalYscale.setExtents("exdomain",[0])
+  let axisLocked = false
 
 </script>
 
@@ -208,10 +212,10 @@
       <div class=box>
         some tabby thingies to choose between before and between
         <input type="radio" id={"before"} checked ={mode.population_before} name="explorer" value={"before"} 
-        on:click={()=>{mode.switch(startDate,endDate,selection);syncSelection();mode = population_before}}>
+        on:click={()=>{mode = population_before;mode.switch(startDate,endDate,selection);syncSelection()}}>
         <label for={"before"}>Before</label> 
         <input type="radio" id={"between"} checked ={mode.population_between} name="explorer" value={"between"} 
-        on:click={()=>{mode.switch(startDate,endDate,selection);syncSelection();mode = population_between}}>
+        on:click={()=>{mode = population_between;mode.switch(startDate,endDate,selection);syncSelection()}}>
         <label for={"between"}>Between</label> 
       </div>
     </div>
@@ -235,7 +239,7 @@
             {#await mapLayerPromise }
             waiting for layers
             {:then maplayers}
-              <select name=layer id=layer on:click={syncSelection}>
+              <select name=layer id=layer on:click={(e)=>{syncSelection(e);mode.switch(startDate,endDate,selection)}}>
                 {#each layerlist as layer,i}
                   <option id={layer.map.name} name="layer" selected = {i==currentlayer} value={i}>
                     {layer.map.name}
@@ -284,6 +288,11 @@
               <label for="align">Align Day of Week</label>
             </div>
           {/if}
+          <div class = box>
+            <input type="checkbox" id="lock" name="lock"
+            checked = {axisLocked} on:change={()=>axisLocked=!axisLocked}>
+            <label for="lock">Lock Y axes together</label>
+          </div>  
         </div>
       </div>
       {#if mode.population_before}
@@ -313,16 +322,16 @@
           active={!!$selection.length}>
         {#if $selection[0]}
           <div>
-            <LineGraph xtime={true} width = {width} ysuppressZero={false} intercepts = {"bottom_left"} >
+            <LineGraph xtime={true} width = {width} ysuppressZero={false} externalYscale={axisLocked?externalYscale:null} intercepts = {"bottom_left"} 
+              let:xScale let:yScale >
               {#await data}
               {:then _data}
-              <StackedArea data = {_data} xaccessor={d=>d.time} {layers} bind:stacked_data={stack1}></StackedArea>
+              <StackedArea data = {_data} {xScale} {yScale} xaccessor={d=>d.time} {layers} bind:stacked_data={stack1}></StackedArea>
               <Cursor let:x let:y let:sx let:sy>
                 <VertCursor {x} ></VertCursor>
                 <BoxCursor {x} content = {content(sx,stack1)}></BoxCursor>
               </Cursor>
-              {/await}
-              
+              {/await}              
             </LineGraph>
           </div>
         {/if}
@@ -350,10 +359,11 @@
               active={!!$selection.length}>
         {#if (mode.population_between && $selection[1]) || (mode.population_before && $selection[0])}
         <div>
-          <LineGraph xtime={true} width = {width} ysuppressZero={false} intercepts = {"bottom_left"} >
+          <LineGraph xtime={true} width = {width} ysuppressZero={false} externalYscale={axisLocked?externalYscale:null} intercepts = {"bottom_left"}  
+          let:xScale let:yScale >
             {#await data}
             {:then _data}           
-            <StackedArea data = {_data} xaccessor={d=>d.time} {layers} bind:stacked_data={stack2}></StackedArea>
+            <StackedArea data = {_data} {xScale} {yScale} xaccessor={d=>d.time} {layers} bind:stacked_data={stack2}></StackedArea>
             <Cursor let:x let:y let:sx let:sy>
               <VertCursor {x} ></VertCursor>
               <BoxCursor {x} content = {content(sx,stack2)}></BoxCursor>
