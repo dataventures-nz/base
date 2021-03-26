@@ -165,6 +165,12 @@
   externalYscale.setRange([170,30])
   externalYscale.setExtents("exdomain",[0])
   let axisLocked = false
+  $: if(selection.length==0){
+    externalYscale.clear()
+    externalYscale.setExtents("exdomain",[0])
+  }
+
+  let svg1,svg2
 
 </script>
 
@@ -281,17 +287,19 @@
               {/each}
             </div>
           </div>
-          {#if mode.population_before}
+          <div class = flex>
+            {#if mode.population_before}
+              <div class = box>
+                <input type="checkbox" id="align" name="align"
+                checked = {alignWeekdays} on:change={()=>alignWeekdays=!alignWeekdays}>
+                <label for="align">Align Day of Week</label>
+              </div>
+            {/if}
             <div class = box>
-              <input type="checkbox" id="align" name="align"
-              checked = {alignWeekdays} on:change={()=>alignWeekdays=!alignWeekdays}>
-              <label for="align">Align Day of Week</label>
+              <input type="checkbox" id="lock" name="lock"
+              checked = {axisLocked} on:change={()=>axisLocked=!axisLocked}>
+              <label for="lock">Lock Y axes together</label>
             </div>
-          {/if}
-          <div class = box>
-            <input type="checkbox" id="lock" name="lock"
-            checked = {axisLocked} on:change={()=>axisLocked=!axisLocked}>
-            <label for="lock">Lock Y axes together</label>
           </div>  
         </div>
       </div>
@@ -314,7 +322,8 @@
         {/if}
         {#if mode.population_between && $selection[0]}
             {$selection[0].name}
-        {/if}  
+        {/if}
+          
         </div>
         <Filter pipeline={make_match()} 
           pre = {mode.uniqueFilter(0)(dbfield,$selection,s1,s2,period,weekdayOffset,alignWeekdays)} 
@@ -322,7 +331,11 @@
           active={!!$selection.length}>
         {#if $selection[0]}
           <div>
-            <LineGraph xtime={true} width = {width} ysuppressZero={false} externalYscale={axisLocked?externalYscale:null} intercepts = {"bottom_left"} 
+            <LineGraph xtime={true} width = {width} 
+            bind:svg={svg1} 
+            ysuppressZero={false} 
+            externalYscale={axisLocked?externalYscale:null} 
+            intercepts = {"bottom_left"} 
               let:xScale let:yScale >
               {#await data}
               {:then _data}
@@ -333,6 +346,7 @@
               </Cursor>
               {/await}              
             </LineGraph>
+            <ChartPrinter svg={svg1}></ChartPrinter> 
           </div>
         {/if}
       </Filter>
@@ -351,7 +365,8 @@
           {/if}
           {#if mode.population_between && $selection[1]}
               {$selection[1].name}
-          {/if}    
+          {/if}
+              
         </div>
         <Filter pipeline={make_match()} 
               pre = {mode.uniqueFilter(1)(dbfield,$selection,s1,s2,period,weekdayOffset,alignWeekdays)} 
@@ -359,7 +374,11 @@
               active={!!$selection.length}>
         {#if (mode.population_between && $selection[1]) || (mode.population_before && $selection[0])}
         <div>
-          <LineGraph xtime={true} width = {width} ysuppressZero={false} externalYscale={axisLocked?externalYscale:null} intercepts = {"bottom_left"}  
+          <LineGraph xtime={true} width = {width}
+          bind:svg={svg2} 
+          ysuppressZero={false} 
+          externalYscale={axisLocked?externalYscale:null} 
+          intercepts = {"bottom_left"}  
           let:xScale let:yScale >
             {#await data}
             {:then _data}           
@@ -371,6 +390,7 @@
             {/await}
             
           </LineGraph>
+          <ChartPrinter svg={svg2}></ChartPrinter>
         </div>
         {/if}
       </Filter>
