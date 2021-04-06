@@ -4,13 +4,13 @@
 
   import Node from './Node.svelte'
   export let items = []
-
+  export let del = false
+  
   const dispatchItemClick = (item) => dispatch('selectItem', item)
-
 </script>
 
 <div style='min-height:20px'>
   {#each items as item(item.id)}
-    <Node {item} on:click={dispatchItemClick(item)}/>
+    <Node {item} {del} on:delete on:click={dispatchItemClick(item)}/>
   {/each}
 </div>

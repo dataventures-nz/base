@@ -3,7 +3,6 @@
   import AddCollectionForm from './forms/AddCollectionForm.svelte'
   import AddMaterialisedViewForm from './forms/AddMaterialisedViewForm.svelte'
   import AddTagForm from './forms/AddTagForm.svelte'
-  import AddUserForm from './forms/AddUserForm.svelte'
   import AddAdminForm from './forms/AddAdminForm.svelte'
   import DeleteButton from './forms/DeleteButton.svelte'
   import NodeList from './NodeList.svelte'
@@ -13,8 +12,9 @@
   let showAddCollection = false
   let showAddMaterialisedView = false
   let showAddTag = false
-  let showAddUser = false
   let showAddAdmin = false
+
+  const setNode = e => node_id = e.detail._id
 
   const isValidPermission = (permission) => {
     try {
@@ -40,7 +40,7 @@
   let all_permissions = []
   const getAllPermissionsFor = (n) => fetch_json("POST", admin_url("/canEditPermissions"), {node:n,permission:'read'}).then(x => all_permissions = x)
   const setPermission = (permission) => {
-    setRestriction(permission.db, permission.collection, node_id, "read", permission.read)
+    setRestriction(permission.db, permission.collection, node_id, "read", JSON.parse(permission.read))
   }
 
   let filter = ''
@@ -51,7 +51,6 @@
 
   let node_id = undefined
   $: node = nodes.filter(node => node_id == node?._id)?.[0]
-
   $: node && !node.org && getAllPermissionsFor(node._id)
   $: parents = node ? getAll(node.parents) : []
   $: children = node ? getAll(node.children) : []
@@ -70,39 +69,41 @@
     <input bind:value={filter}>
 
     <h3>Collections</h3>
-    <NodeList items={filtered_collections} on:selectItem={e => node_id = e.detail._id}/>
+    <NodeList items={filtered_collections} on:selectItem={setNode}/>
       {#if me?.canAddCollectionTo}
         <button on:click="{() => showAddCollection = true}">Add New Collection</button>
       {/if}
     <h3>Tags</h3>
-    <NodeList items={filtered_tags} on:selectItem={e => node_id = e.detail._id}/>
+    <NodeList items={filtered_tags} on:selectItem={setNode}/>
 
     <h3>Users</h3>
-    <NodeList items={filtered_users} on:selectItem={e => node_id = e.detail._id}/>
+    <NodeList items={filtered_users} on:selectItem={setNode}/>
   </div>
 
   <div class="col-xs-10">
     {#if node}
-      <h2><span class='{node.type} pill'>{node._id}</span> - <DeleteButton {node} {nodes} {getData}/></h2>
-
+      <h2><span class='{node.type} pill'>{node._id}</span> - 
+        {#if node.type != 'user'}  
+          <DeleteButton {node} {nodes} {getData}/>
+        {/if} 
+      </h2>
       <h3>Parents</h3>
-      <NodeList items={parents} on:selectItem={e => node_id = e.detail._id}/>
+      <NodeList del items={parents} on:selectItem={setNode}/>
 
       {#if node.type != 'user'}
         <h3>Children</h3>
-        <NodeList items={children} on:selectItem={e => node_id = e.detail._id}/>
+        <NodeList del items={children} on:selectItem={setNode}/>
         <button on:click="{() => showAddMaterialisedView = true}">Add Materialised View</button>
         <button on:click="{() => showAddTag = true}">Add Tag</button>
-        <button on:click="{() => showAddUser = true}">Add User</button>
       {/if}
 
       <h3>Admined By</h3>
-      <NodeList source={false} items={adminedBy} on:selectItem={e => node_id = e.detail._id}/>
+      <NodeList del items={adminedBy} on:selectItem={setNode}/>
       <button on:click="{() => showAddAdmin = true}">Add Admin</button>
 
       {#if node.type == 'user'}
         <h3>Admins</h3>
-        <NodeList source={false} items={admins} on:selectItem={e => node_id = e.detail._id}/>
+        <NodeList del items={admins} on:selectItem={setNode}/>
       {/if}
 
       {#if node.type == 'collection'}
@@ -129,12 +130,6 @@
   </Modal>
 {/if}
 
-{#if showAddUser}
-  <Modal on:close={() => {showAddUser = false; getData()}} let:close>
-    <AddUserForm admin={me} {close}/>
-  </Modal>
-{/if}
-
 {#if showAddTag}
   <Modal on:close={() => {showAddTag = false; getData()}} let:close>
     <AddTagForm {nodes} {close} parent={node_id}/>
@@ -149,7 +144,7 @@
 
 {#if showAddAdmin}
   <Modal on:close={() => {showAddAdmin = false; getData()}} let:close>
-    <AddAdminForm admin={me} {close}/>
+    <AddAdminForm {nodes} {close} parent={node_id} />
   </Modal>
 {/if}
 

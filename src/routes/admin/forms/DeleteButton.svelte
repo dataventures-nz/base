@@ -2,12 +2,12 @@
   import {deleteNode} from '$components/api.mjs'
 
   export let node
-  export let nodes 
+  export let nodes
   export let getData
   let reason
 
   $: admins_all_parents = node.parents.every(parent => nodes.map(x => x._id).includes(parent))
-  $: children_will_not_be_orphened = node.children.every(child => nodes.filter(n => n.id==child)[0].parents.length > 1)
+  $: children_will_not_be_orphened = !node.children || node.children.every(child => nodes.filter(n => n.id==child)[0].parents.length > 1)
   $: canItHappen = admins_all_parents && children_will_not_be_orphened
 
   $: if (!admins_all_parents) {
