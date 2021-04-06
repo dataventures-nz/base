@@ -209,7 +209,6 @@
 
 </style>
 
-
 <Crossfilter db={db} collection={table}>
 <Filter useMatches={false} brush={mode.commonFilter($selection,dbfield,startDate,endDate)}></Filter>
 <section class = "container-fluid select-wrapper">

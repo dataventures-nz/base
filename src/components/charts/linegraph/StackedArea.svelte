@@ -41,16 +41,23 @@
   $: stackaccessor = (d,key)=>_layers[key].accessor(d)
   $: if(width){stacked_data = stack.keys(Object.keys(_layers)).value(stackaccessor)(data)}
 
-  let area = d3.area()
-
-  $: area.x(d=>$xScale(xaccessor(d.data)))
-    .y1(d=>$yScale(d[1]))
-    .y0(d=>$yScale(d[0]))
-
   $: toplayer = stacked_data[stacked_data.length -1]
 
   $: if(yextent){yScale.setExtents(id,yextent)} 
     else if (toplayer){yScale.setExtents(id,toplayer.map(d=>d[1]))} 
+
+  let area = d3.area()
+
+  $: {
+    console.log(id,$yScale.domain())
+    
+    area.x(d=>$xScale(xaccessor(d.data)))
+      .y1(d=>$yScale(d[1]))
+      .y0(d=>$yScale(d[0]))
+    
+    area = area  
+    }
+  
 
   onDestroy(() => {xScale.clear(id);yScale.clear(id)})
 
