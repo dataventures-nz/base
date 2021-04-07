@@ -1,8 +1,8 @@
 <script>
   import { getContext } from 'svelte';
   const constants=  getContext("constants")  
-  $: xScale = $constants.xScale
-  $: yScale = $constants.yScale
+  export let xScale
+  export let yScale
   $: height = $constants.height
   $: width = $constants.width
   $: margin = $constants.margin

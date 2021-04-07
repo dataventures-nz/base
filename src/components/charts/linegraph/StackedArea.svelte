@@ -5,6 +5,8 @@
   export let id = "StackedArea"+Math.random()
   export let data=[{x:0,y1:0.3,y2:0.7},{x:1,y1:0.7,y2:0.3}]
   export let xaccessor = d => d.x
+  export let xScale
+  export let yScale
   export let layers = [
     {
       name:"y1",
@@ -18,12 +20,10 @@
     }
   ]
   export let stacked_data
-  export let xScale
-  export let yScale
+
   // let {height,width,margin,xScale,yScale,xextent,yextent} = getContext("constants");
   const constants=  getContext("constants")  
   $: width = $constants.width
-  $: margin = $constants.margin
   $: xextent = $constants.xextent
   $: yextent = $constants.yextent
 
@@ -48,25 +48,18 @@
 
   let area = d3.area()
 
-  $: {
-    console.log(id,$yScale.domain())
-    
-    area.x(d=>$xScale(xaccessor(d.data)))
+  $: {area.x(d=>$xScale(xaccessor(d.data)))
       .y1(d=>$yScale(d[1]))
-      .y0(d=>$yScale(d[0]))
-    
+      .y0(d=>$yScale(d[0]))    
     area = area  
     }
   
-
   onDestroy(() => {xScale.clear(id);yScale.clear(id)})
 
 </script>
 
   <g>
-  <!-- <g style = {"transform:translate("+margin+","+margin+")"}> -->
-  
-  {#each stacked_data as a}
-    <path d={area(a)} { ..._layers[a.key].style }></path>
-  {/each}
-</g>
+    {#each stacked_data as a}
+      <path d={area(a)} { ..._layers[a.key].style }></path>
+    {/each}
+  </g>

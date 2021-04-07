@@ -5,6 +5,8 @@
   export let id = "StackedArea"+Math.random()
   export let data=[{x:0,y1:0.3,y2:0.7},{x:1,y1:0.7,y2:0.3}]
   export let xaccessor = d => d.x
+  export let xScale
+  export let yScale
   export let gap = 0 //width of gap in px
   export let layers = [
     {
@@ -22,8 +24,6 @@
   
   const constants=  getContext("constants")  
   $: width = $constants.width
-  $: xScale = $constants.xScale
-  $: yScale = $constants.yScale
   $: margin = $constants.margin
   $: yextent = $constants.yextent
 

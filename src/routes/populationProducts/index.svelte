@@ -339,7 +339,7 @@
               {#await data}
               {:then _data}
               <StackedArea data = {_data} {xScale} {yScale} xaccessor={d=>d.time} {layers} bind:stacked_data={stack1}></StackedArea>
-              <Cursor let:x let:y let:sx let:sy>
+              <Cursor {xScale} {yScale} let:x let:y let:sx let:sy>
                 <VertCursor {x} ></VertCursor>
                 <BoxCursor {x} content = {content(sx,stack1)}></BoxCursor>
               </Cursor>
@@ -382,7 +382,7 @@
             {#await data}
             {:then _data}           
             <StackedArea data = {_data} {xScale} {yScale} xaccessor={d=>d.time} {layers} bind:stacked_data={stack2}></StackedArea>
-            <Cursor let:x let:y let:sx let:sy>
+            <Cursor {xScale} {yScale} let:x let:y let:sx let:sy>
               <VertCursor {x} ></VertCursor>
               <BoxCursor {x} content = {content(sx,stack2)}></BoxCursor>
             </Cursor>

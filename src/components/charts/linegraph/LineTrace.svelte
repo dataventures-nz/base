@@ -7,10 +7,11 @@
   export let xaccessor = d => d.x
   export let yaccessor = d => d.y
   export let id = Math.random()
+  export let xScale
+  export let yScale
 
   const c =  getContext("constants")  
-  $: xScale = $c.xScale
-  $: yScale = $c.yScale
+
   $: margin = $c.margin
   $: xextent = $c.xextent
   $: yextent = $c.yextent
@@ -20,13 +21,13 @@
     style={stroke:stroke,fill:"none"} 
   }
   
-  if(xextent){$c.xScale.setExtents(id,xextent)} 
-    else {$c.xScale.setExtents(id,data.map(xaccessor))} 
+  if(xextent){xScale.setExtents(id,xextent)} 
+    else {xScale.setExtents(id,data.map(xaccessor))} 
 
-  if(yextent){$c.yScale.setExtents(id,yextent)} 
-    else {$c.yScale.setExtents(id,data.map(yaccessor))} 
+  if(yextent){yScale.setExtents(id,yextent)} 
+    else {yScale.setExtents(id,data.map(yaccessor))} 
 
-  onDestroy(() => {$c.xScale.clear(id);$c.yScale.clear(id)})
+  onDestroy(() => {xScale.clear(id);yScale.clear(id)})
 
   $: line = d3.line().x(d=>$xScale(xaccessor(d))).y(d=>$yScale(yaccessor(d)))
 
