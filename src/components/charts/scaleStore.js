@@ -16,6 +16,10 @@ export function createScale(scale = d3.scaleLinear()) {
 		update,
 		setRange:(range) => update(x => x.range(range)),
 		setExtents:(key,ext) => {extents[key] = ext; recalc()},
-		clear:(key) => {delete extents[key]; recalc()}
+		clear:(key) => {
+			if(key){delete extents[key]}
+			else{extents = {}}; 
+			recalc()
+		}
 	}
 }

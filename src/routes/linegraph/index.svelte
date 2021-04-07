@@ -3,6 +3,8 @@ import Cursor from '$components/charts/linegraph/Cursor.svelte'
 import LineGraph from '$components/charts/linegraph/LineGraph.svelte'
 import LineTrace from '../../components/charts/linegraph/LineTrace.svelte'
 import StackedArea from '../../components/charts/linegraph/StackedArea.svelte'
+import StackedBar from '../../components/charts/linegraph/StackedBar.svelte'
+import Scatter from '../../components/charts/linegraph/Scatter.svelte'
 import { xor_only } from '$components/map/select_modes.mjs'
 import QueryMap from './QueryMap.svelte'
 import VertCursor from './VertCursor.svelte'
@@ -18,8 +20,8 @@ import * as d3 from "d3"
 let filename = "graph"
 let datefield = "time"
 let table = "hourly_materialised"
-let startDate = new Date(2020,3,1)
-let endDate = new Date(2020,5,1)
+let startDate = new Date(2020,3,1,5)
+let endDate = new Date(2020,3,1,19)
 let layerlist = default_layerlist
 let allowedlayers = ["sa2_2018_code"]
 let currentlayer = 0
@@ -60,6 +62,7 @@ let dataarrays = {}
 
 function addtodataarrays(selection){
   const match = make_match([selection],dbfield,datefield,startDate,endDate)
+  console.log(match)
   const data = query("population",table,match).then(clean)
   return {selection,data,color:"#" + Math.floor(Math.random()*16777215).toString(16)}
 }
@@ -87,22 +90,26 @@ let layers = [
     {
       name:"y1",
       accessor: d => +d.local,
-      style:{fill:"pink",stroke:"black","fill-opacity":0.5}
+      style:{fill:"pink",stroke:"none","fill-opacity":0.5},
+      active:false
     },
     {
       name:"y2",
       accessor: d => +d.domestic,
-      style:{fill:"yellow",stroke:"yellow"}
+      style:{fill:"yellow",stroke:"none"},
+      active:true
     },
     {
       name:"y2",
       accessor: d => +d.international,
-      style:{fill:"#000","fill-opacity":0.1}
+      style:{fill:"#000","fill-opacity":0.1},
+      active:false
     },
     {
       name:"y2",
       accessor: d => +d.unknown,
-      style:{fill:"green",stroke:null}
+      style:{fill:"green",stroke:"none"},
+      active:false
     }
   ]
   let stack
@@ -112,14 +119,21 @@ let layers = [
 
     // let data = stack[1].map(d=>d.data)
     if (stack){
+      
       let m = d3.minIndex(stack[1],d=>Math.abs(d.data.time-sx))
+      
+      if (stack[1][m]){
       let d = stack[1][m]["data"]
-      console.log(d)
       return ["time: "+d.time,"total: "+d.count,
       "visitors: "+((d.domestic*1)+(d.international*1)+(d.unknown*1))]
+      } else {
+        return ["something else is wrong"]
+      }
     }
     return ["something is wrong"]
   }  
+
+$: console.log(dataarrays)
 
 
 </script>
@@ -171,7 +185,7 @@ let layers = [
       </div>
       <div class=box>
         <p>Select an area</p>
-          <QueryMap height = 700 selectMode={xor_only} {allowedlayers} bind:layerlist currentlayer={0} ></QueryMap>
+          <QueryMap height = 700 selectMode={xor_only} {allowedlayers} bind:layerlist currentlayer={4} ></QueryMap>
       </div>
 		</div>
    	<div class="col-md-7">
@@ -182,7 +196,7 @@ let layers = [
           <ChartPrinter filename={filename} svg={svg} />
         </div>
       </div>
-      <div class="row box">
+      <!-- <div class="row box">
         <div class="col-md-12" bind:this={chartdiv}>
           <LineGraph  yextent = {[-2,2]} intercepts = {"zero"}>
             <LineTrace stroke="red" data ={[{x:-3,y:0},{x:3,y:1}]}></LineTrace>
@@ -204,20 +218,23 @@ let layers = [
             {/if}
           </LineGraph>
         </div>
-      </div>
+      </div> -->
       <div class="row box">
         <div class="col-md-12">
-          <LineGraph xtime={true} width = {800} ysuppressZero={false} intercepts = {"bottom_left"}>
+          <LineGraph bind:svg={svg} xtime={true} width = {800} ysuppressZero={false} intercepts = {"bottom_left"} let:xScale let:yScale >
             {#if Object.values(dataarrays)[0]}
               {#await Object.values(dataarrays)[0].data then d}
-                <StackedArea data = {d} xaccessor={d=>d.time} {layers} bind:stacked_data={stack}></StackedArea>
-                <LineTrace data = {d} xaccessor={d=>d.time} yaccessor={d=>+d.domestic+(+d.unknown)} stroke={"black"}></LineTrace> 
+                <LineTrace {xScale} {yScale} data = {d} xaccessor={d=>d.time} yaccessor={d=>+d.domestic} 
+                style={{stroke:"black","stroke-width":"0.5px",fill:"none"}} ></LineTrace>
+                <!-- <StackedBar data = {d} xaccessor={d=>d.time} {layers} bind:stacked_data={stack} gap={0}></StackedBar> -->
+                <Scatter data={d} xaccessor={d=>d.time} {layers} {xScale} {yScale} let:x let:y>
+                  <!-- <rect width=4 height=4 transform={"translate("+(x-2)+","+(y-2)+")"}></rect> -->
+                  <g transform={"translate("+(x-20)+","+(y-20)+")"}>
+                    <image width = 40 height=40 href="./assets/doge.png"></image>
+                  </g>
+                </Scatter>
               {/await}
             {/if}
-            <Cursor let:x let:y let:sx let:sy>
-              <VertCursor {x} ></VertCursor>
-              <BoxCursor {x} content = {content(sx)}></BoxCursor>
-            </Cursor>
           </LineGraph>
         </div>
       </div>

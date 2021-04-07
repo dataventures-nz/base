@@ -23,24 +23,55 @@ import picsaver from 'save-svg-as-png'
   export let filled = false
   export let closed = false
   export let hasbackground = false
+  export let dx 
+  export let dy
+  export let usemouse = true
+  export let chunkPostProcess = d=>d
+  export let curve = d3.curveLinear
+  export let overline = false
 
   let options
   $: options = {height,width,xdomain,ydomain,yextent,yaccessor,xaccessor}
-
+  $: console.log({groups})
   let yscale = d3.scaleLinear()
   let xscale = d3.scaleLinear()
   
-  const area = d3.area()
+  const area = d3.area().curve(curve)
     .x((d)=>xscale(options.xaccessor(d)))
     .y0(d=>yscale(options.yaccessor(d)))
     .y1(d=>yscale(0))
 
   const line = d3.line()
+    .curve(curve)
     .x((d)=>xscale(options.xaccessor(d)))
     .y(d=>yscale(options.yaccessor(d)))
-    
+
+  $: base_y_scale = d3.scaleLinear().domain(d3.extent(lines.map(line => line[0].top))).range([1,0])
+
+  const split = (lines) => {
+    const splitLines = lines.flatMap(line =>{
+      let lastLeft = line[0].left
+
+      const chunks = []
+      let currentChunk = []
+      line.forEach(pt => {
+        if (pt.left - 15000 > lastLeft) {
+          chunks.push(currentChunk)
+          currentChunk = [pt]
+        } else {
+          currentChunk.push(pt)
+        }
+        lastLeft = pt.left
+      })
+      chunks.push(currentChunk)
+      return chunks
+    })
+    splitLines.forEach(chunkPostProcess)
+    return splitLines;
+  }
+
   let lines 
-  $: lines = Object.values(groups).map(d=>d.data)
+  $: lines = split(Object.values(groups).map(d=>d.data))
 
 let mousedown = false
 let mousep = {
@@ -69,7 +100,7 @@ const drag = (e)=>{
 
 const dragend = (e)=>{mousedown = false}
 
-let dx,dy,y1
+let y1
 
 let svg,svgbackgroundstyle
 
@@ -84,11 +115,14 @@ $: {xscale.domain(options.xdomain).range([0,width*plotwidth])
     area.x((d)=>xscale(options.xaccessor(d)))
     line.x((d)=>xscale(options.xaccessor(d)))
     }
-$: dx = mousep.dx()/lines.length
-$: dy = mousep.dy()/lines.length
+
+
+$: if(usemouse){dx = mousep.dx();dy = mousep.dy()}
 $: y1 = yscale(options.yextent[1]-options.yextent[0])
 $: svgbackgroundstyle = hasbackground ? "background-color:"+background : "background-color:none"
-$: console.log(fillOpacity)
+
+$: console.log({xscale,yscale} )
+$: console.log(options)
 
 const savesvg = ()=> picsaver.saveSvg(svg,filename+".svg",{excludeUnusedCss:true}) 
 const savewithoutcss = ()=> picsaver.saveSvg(svg,filename+".svg",{excludeCss:true})
@@ -117,11 +151,14 @@ const savepng = ()=> picsaver.saveSvgAsPng(svg,filename+".png")
   <rect height={options.height} width={options.width} fill=none/>
   {#key {plotwidth,position,brokenaxis}}
     {#each lines as d,i}
-      <g transform="translate({options.width*position[1]+dx*i},{y1+dy*i})" >
+      <g transform="translate({options.width*position[1]+dx*base_y_scale(d[0].top)},{y1+dy*base_y_scale(d[0].top)})" >
         {#if !closed}
         <path fill = none stroke={stroke(d,i)}  d={line(d)}></path>
         {:else}
-          <path fill={filled ? fill(d,i):"none"} fill-opacity={fillOpacity(d,i)} stroke={stroke(d,i)} d={area(d)}></path>
+          <path fill={filled ? fill(d,i):"none"} fill-opacity={fillOpacity(d,i)} stroke={overline ? "none":stroke(d,i)} d={area(d)}></path>
+          {#if overline}
+            <path fill = none stroke={stroke(d,i)}  d={line(d)}></path>
+          {/if}
         {/if}
       </g>
     {/each}

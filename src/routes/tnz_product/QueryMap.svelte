@@ -8,11 +8,10 @@
   import {ctrl_click_adds} from '../../components/map/select_modes.js'
   import NavigationControl from '../../components/map/NavigationControl.svelte';
   export let selectMode = ctrl_click_adds
-  export let height = 500  
-  export let layerlist =[]
+  export let height = 500
+  export let layerlist
+  export let allowedlayers
   export let currentlayer 
-  export let selection
-  
   let map
 
   const fill = {
@@ -53,28 +52,21 @@
     return reverse_accessor
   }
 
-  $:{
-    layerlist.map(d=>d.ui.visible = false )
-    layerlist[currentlayer] && (layerlist[currentlayer].ui.visible = true)
+  $:if(layerlist.length > 0){layerlist[currentlayer].ui.visible = true}
+
+  $: if(layerlist.length > 0 && allowedlayers && !allowedlayers.find(x=> x == layerlist[currentlayer].db.field)){
+    currentlayer=0
+    layerlist[currentlayer].ui.visible = true
+    console.log(currentlayer,layerlist[currentlayer])
   }
-
-  $:console.log(selection)
-
-
+  
 </script>
 
 <div style=height:{height}px >
   <Map bind:map={map} lat={-41.5} lon={172} zoom={4.5} minZoom={3.5} style='mapbox://styles/dataventures/cjzaospfz0i1l1cn3kcuof5ix'>
     {#each layerlist as layer (layer.map.name)}
         <MapSource name={layer.map.name} type="vector" url={layer.map.url}>
-          <SelectableMapLayer 
-            bind:visible={layer.ui.visible} 
-            id={layer.map.name+"-fill"} 
-            type="fill" {selectMode} 
-            sourcelayer={layer.map.sourcelayer} 
-            options={fill} id_accessor={accessor_for(layer.map)} 
-            reverse_accessor={reverse_accessor_for(layer.map)} 
-            bind:selected={selection}/>
+          <SelectableMapLayer bind:visible={layer.ui.visible} id={layer.map.name+"-fill"} type="fill" {selectMode} sourcelayer={layer.map.sourcelayer} options={fill} id_accessor={accessor_for(layer.map)} reverse_accessor={reverse_accessor_for(layer.map)} bind:selected={layer.map.selection}/>
           <MapLayer bind:visible={layer.ui.visible} id={layer.map.name+"-lines"} type="line" sourcelayer={layer.map.sourcelayer} options={lines}></MapLayer>
         </MapSource>
     {/each}

@@ -4,7 +4,9 @@
   export let x  = 0
   export let content = ["line1","a much longer line 2 blah de blah", "some more content"]
  
-  let {height,width,margin,xScale,yScale,xextent,yextent} =  getContext("constants");
+  const constants=  getContext("constants")  
+  $: xScale = $constants.xScale
+  
   let right = true 
   let inner_g
   let lineheight = 0
@@ -29,7 +31,6 @@
     layout()
     lineheight = inner_g.children[0].getBoundingClientRect().height
   }
-
 </script>
 
 <style type="text/scss">

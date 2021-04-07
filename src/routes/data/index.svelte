@@ -6,8 +6,7 @@
   import {xor_only} from '../../components/map/select_modes.js'
   import QueryMap from './QueryMap.svelte'
   import {download} from '../../components/_utils/download.js'
-  // import default_layerlist from "./field_to_layer.json"
-  import GroupedDropdown from '../../components/DropdownTree/GroupedDropdown.svelte';
+  import {mappable_fields,time_fields} from '../../components/_utils/schemautils.js'
   import Datepicker from '../../components/datepicker/DatePicker.svelte';
   import CopyBox from '../../components/CopyBox.svelte';
   import Tabs from '../../components/tabs/Tabs.svelte';
@@ -25,8 +24,6 @@
   let layerlist = []
   let allowedlayers = ["sa2_2018_code","TALB2020_code","region_2018_code"]
   let filename = "mydata.csv"
-  let startdatedata = ""
-  let enddatedata = ""
   let match
   let currentlayer = 0
   let selection = []
@@ -37,37 +34,16 @@
   let copytext
   let tokentext = "tokentext"
   
-  $: collection && (layerlist = collection.mappableFields)
+  $: layerlist = collection?.mappableFields??[]
+  $:console.log(collection)
   
   function displayname(collection){
     return collection.db +"/"+collection.collection 
   }
-  
-  function mappable_fields(collection){
-    let maplayers = []
-    Object.entries(collection.schema.properties).map(d=>{
-      if(d[1].map){
-        d[1].map.selection = []
-        maplayers.push({
-          db:{field:d[0]},
-          map:d[1].map,
-          ui:{visible:false,include:true}
-        })
-      }
-    })
-    return maplayers
-  }
-
-  function time_fields(collection){
-    let timefields = []
-    Object.entries(collection.schema.properties).map(d=>{
-      if(d[1].bsonType == "date"){timefields.push(d[0])}
-    })
-    return timefields
-  }
 
   async function get_allowed_db(){
     let collections = await listDatabases()
+    console.log(collections)
     let value =  collections.map(d=>{
         return {
           displayName:displayname(d),
@@ -140,7 +116,7 @@
 
   const collectionchanged = function(a,b){
     currentlayer = collection.currentlayer
-    selection = collection.mappableFields[collection.currentlayer].selection ? collection.mappableFields[collection.currentlayer].selection : []
+    selection = collection?.mappableFields[collection.currentlayer]?.selection ? collection.mappableFields[collection.currentlayer].selection : []
   }
 
   const clearmapselection = function(){
@@ -159,8 +135,8 @@
   }
 
   let service
-  $: if (collection){collection.mappableFields[collection.currentlayer].selection = selection}
-  $: if(collection){dbfield = collection.mappableFields[collection.currentlayer].db.field} 
+  $: if (collection && collection.mappableFields.length){collection.mappableFields[collection.currentlayer].selection = selection}
+  $: if(collection && collection.mappableFields.length){dbfield = collection.mappableFields[collection.currentlayer].db.field} else {dbfield=null} 
   $: if(collection){service = collection.displayName}
   $: match = make_match(selection,dbfield,datefield,startDate,endDate)
   $: copytext = option.copytext(match,table,r)

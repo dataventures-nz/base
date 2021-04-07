@@ -8,12 +8,16 @@
   import {ctrl_click_adds} from '../../components/map/select_modes.js'
   import NavigationControl from '../../components/map/NavigationControl.svelte';
   export let selectMode = ctrl_click_adds
-  export let height = 500  
-  export let layerlist =[]
+  export let height = 500
+  export let layerlist
+  export let allowedlayers
   export let currentlayer 
   export let selection
   
   let map
+
+  console.log($selection)
+  
 
   const fill = {
       "paint": {
@@ -48,18 +52,21 @@
   function reverse_accessor_for(map){
     let p = map.properties
     function reverse_accessor(d){
-      return {[p.id]:d.area_id}
+      if(d){return {[p.id]:d.area_id}}
+      return {[p.id]:-99}
     }
     return reverse_accessor
   }
 
   $:{
-    layerlist.map(d=>d.ui.visible = false )
-    layerlist[currentlayer] && (layerlist[currentlayer].ui.visible = true)
+    layerlist.map(d=>d.ui.visible = false)
+    layerlist[currentlayer].ui.visible = true
   }
 
-  $:console.log(selection)
-
+  $: if(allowedlayers && !allowedlayers.find(x=> x == layerlist[currentlayer].db.field)){
+    currentlayer=0
+    layerlist[currentlayer].ui.visible = true
+  }
 
 </script>
 
@@ -70,11 +77,13 @@
           <SelectableMapLayer 
             bind:visible={layer.ui.visible} 
             id={layer.map.name+"-fill"} 
-            type="fill" {selectMode} 
+            type="fill" 
+            {selectMode} 
             sourcelayer={layer.map.sourcelayer} 
-            options={fill} id_accessor={accessor_for(layer.map)} 
+            options={fill} 
+            id_accessor={accessor_for(layer.map)} 
             reverse_accessor={reverse_accessor_for(layer.map)} 
-            bind:selected={selection}/>
+            bind:selected={$selection}/>
           <MapLayer bind:visible={layer.ui.visible} id={layer.map.name+"-lines"} type="line" sourcelayer={layer.map.sourcelayer} options={lines}></MapLayer>
         </MapSource>
     {/each}

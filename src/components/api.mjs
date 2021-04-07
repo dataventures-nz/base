@@ -38,8 +38,20 @@ const del_admin = (service,q) => fetch_json('DELETE', admin_url(service),q)
 export const addCollection = (db,collection) => put_admin("db",{db,collection})
 export const addLink = (parent,child) => put_admin("createLink",{parent,child})
 export const addNewTag = (parent,child) => put_admin("addNode",{parent,child})
+
+
+
+export const getSchema = (node) => fetch_json("POST", admin_url('schema'), {node})
 export const addAdmin = (node,admin) => put_admin("admin",{node,admin})
 export const deleteNode = (node) => del_admin("node",{node})
 export const updateSchema = (node, schema) => put_admin('schema', {node,schema})
 export const setRestriction = (db,collection,node,permission,restriction) => put_admin("restriction", {db,collection,node,permission,restriction})
 export const normalise = (q) => EJSON.serialize(q)
+
+const firstQ = (field) => [{"$sort": {[field]: 1}}, {"$limit": 1}, {"$project": {[field]: 1}}]
+const lastQ = (field) => [{"$sort": {[field]: -1}}, {"$limit": 1}, {"$project": {[field]: 1}}]
+
+export const extents = (db,collection,field) => Promise.all([
+    query(db,collection,firstQ(field)).then(d => d[0][field]),
+    query(db,collection,lastQ(field)).then(d => d[0][field])
+])

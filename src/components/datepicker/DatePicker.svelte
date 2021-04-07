@@ -7,15 +7,16 @@
   */
   import Calendar from "./Calendar.svelte";
   import * as d3 from 'd3'
-  import * as dfunc from 'date-fns'
+  import * as df from 'date-fns'
 
 
   const monthYear = d3.timeFormat("%B %Y")
 
   // props
+  export let showDays = true
   export let isAllowed = () => true;
   export let selected = new Date();
-
+  export let format // a date-fns format string eg "d MMMM yyyy"
   // state
   let showDatePicker;
   // handlers
@@ -25,8 +26,8 @@
 
   let datepicker
 
-  const next = () => selected = dfunc.addMonths(selected,1)
-  const prev = () => selected = dfunc.addMonths(selected,-1)
+  const next = () => selected = df.addMonths(selected,1)
+  const prev = () => selected = df.addMonths(selected,-1)
   $:if(datepicker && showDatePicker){datepicker.focus()}
 
 </script>
@@ -59,25 +60,31 @@
     align-items: center;
   }
 
+  #monthtext{
+    width: 200px;
+    white-space: nowrap;
+  }
 </style>
 
 <div class="relative">
-  <input type="text" on:focus={onFocus} value={selected.toDateString()} />
+  <input type="text" on:focus={onFocus} value={format? df.format(selected,format):selected.toDateString()} />
   {#if showDatePicker}
     <div class="box" tabindex=-1 bind:this={datepicker} on:blur={()=>showDatePicker=false}>
       <div class="month-name">
         <div class="center">
           <div on:click={prev}>Prev</div>
         </div>
-        <div class="center">{monthYear(selected)}</div>
+        <div id = monthtext class="center">{monthYear(selected)}</div>
         <div class="center">
           <div on:click={next}>Next</div>
         </div>
       </div>
-      <Calendar
-        bind:date={selected} 
-        bind:showDatePicker={showDatePicker}
-        {isAllowed} />
+      {#if showDays}
+        <Calendar
+          bind:date={selected} 
+          bind:showDatePicker={showDatePicker}
+          {isAllowed} />
+      {/if}
     </div>
   {/if}
 </div>

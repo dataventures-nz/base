@@ -1,8 +1,12 @@
 <script>
   import { getContext } from 'svelte';
-  
-  let {height,width,margin,xScale,yScale,xextent,yextent} =  getContext("constants");
-  
+  const constants=  getContext("constants")  
+  export let xScale
+  export let yScale
+  $: height = $constants.height
+  $: width = $constants.width
+  $: margin = $constants.margin
+
   let sx = 0
   let sy = 0
   let x  = 0
@@ -10,11 +14,13 @@
   let e
 
   $: if(e){
+    
     let rect = e.target.getBoundingClientRect();
     x = e.clientX - rect.left
     y = e.clientY - rect.top;
     sx = $xScale.invert(e.offsetX)
     sy = $yScale.invert(e.offsetY)
+
   }
 
 </script>
@@ -24,7 +30,7 @@
 }
 </style>
 
-<g style = {"transform:translate("+margin+"px,"+margin+"px)"}>
+<g style = {"transform:translate("+margin.left+"px,"+margin.top+"px)"}>
   <slot {x}{y}{sx}{sy} ></slot>
-  <rect height={height-(2*margin)} width={width-2*margin} on:mousemove={(event)=> e=event} ></rect>
+  <rect height={height-(margin.top+margin.bottom)} width={width-(margin.left+margin.right)} on:mousemove={(event)=> e=event} ></rect>
 </g>

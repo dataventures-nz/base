@@ -59,7 +59,7 @@
     layerlist[currentlayer].ui.visible = true
     console.log(currentlayer,layerlist[currentlayer])
   }
-  
+  $: console.log(selectMode)
 </script>
 
 <div style=height:{height}px >

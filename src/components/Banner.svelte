@@ -86,7 +86,10 @@
       <!-- <a class = item href="/chartbox2">Chart 2</a> -->
       <a class = item href="/chartbox3">Polagraph</a>
       <a class = item href="/linegraph">Simple Line</a>
+      <a class = item href="/populationJoy">Joy</a>
     </div>
+    <a class = item href="/populationProducts">Pop</a>
+    <a class = item href='/tnz_product'>TNZ Prototype</a>
   </div>
   <div class = rightitems>
     <div class='usr'>

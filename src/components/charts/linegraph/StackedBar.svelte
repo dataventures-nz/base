@@ -7,6 +7,7 @@
   export let xaccessor = d => d.x
   export let xScale
   export let yScale
+  export let gap = 0 //width of gap in px
   export let layers = [
     {
       name:"y1",
@@ -20,11 +21,10 @@
     }
   ]
   export let stacked_data
-
-  // let {height,width,margin,xScale,yScale,xextent,yextent} = getContext("constants");
+  
   const constants=  getContext("constants")  
   $: width = $constants.width
-  $: xextent = $constants.xextent
+  $: margin = $constants.margin
   $: yextent = $constants.yextent
 
   $: layers.forEach(d=>{
@@ -32,9 +32,17 @@
   })
 
   $:_layers = layers.filter(d=>d.active)
+  $: w = Math.max(((width-(margin.left+margin.right))/(1+data.length))-gap,1)
 
-  $: if(xextent){xScale.setExtents(id,xextent)} 
-    else {xScale.setExtents(id,data.map(xaccessor))}
+  let xextent 
+  $: {
+    let xe = d3.extent(data.map(xaccessor))
+    let xd = (xe[1]-xe[0])/data.length 
+    xextent = [xe[0].getTime()-xd/2,xe[1].getTime()+xd/2]
+    if($constants.xtime){xextent = xextent.map(d=>new Date(d))}
+      }
+
+  $: xScale.setExtents(id,xextent) 
     
   let stack = d3.stack()
 
@@ -45,21 +53,23 @@
 
   $: if(yextent){yScale.setExtents(id,yextent)} 
     else if (toplayer){yScale.setExtents(id,toplayer.map(d=>d[1]))} 
-
-  let area = d3.area()
-
-  $: {area.x(d=>$xScale(xaccessor(d.data)))
-      .y1(d=>$yScale(d[1]))
-      .y0(d=>$yScale(d[0]))    
-    area = area  
-    }
   
   onDestroy(() => {xScale.clear(id);yScale.clear(id)})
 
 </script>
 
   <g>
-    {#each stacked_data as a}
-      <path d={area(a)} { ..._layers[a.key].style }></path>
+  <!-- <g style = {"transform:translate("+margin+","+margin+")"}> -->
+  
+  {#each stacked_data as point}
+    {#each point as r}
+      <rect 
+        width = {w} 
+        height={$yScale(r[0])-$yScale(r[1])} 
+        y={$yScale(r[1])} 
+        x={$xScale(xaccessor(r.data))-w/2} 
+        {..._layers[point.key].style}>
+      </rect>
     {/each}
-  </g>
+  {/each}
+</g>
