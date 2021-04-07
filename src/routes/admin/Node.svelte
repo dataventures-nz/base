@@ -1,5 +1,10 @@
 <script>
+  import {createEventDispatcher} from 'svelte'
+  const dispatch = createEventDispatcher()
+
   export let item = {}
+  export let del = false
+
 </script>
 
 <style>
@@ -28,4 +33,9 @@
   }
 </style>
 
-<span class='{item.type} pill' on:click>{item._id}</span>
+<span class='{item.type} pill' on:click>
+  {item._id}
+  {#if del}
+    &nbsp;<span style="color:red" on:click={dispatch('delete',{item})}>[X]</span>
+  {/if}
+</span>
