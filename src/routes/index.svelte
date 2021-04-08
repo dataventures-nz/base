@@ -1,10 +1,9 @@
 <script>
-	import {userPromise} from "$components/security.mjs";
+	import { userPromise } from '$lib/security.js';
 </script>
 
 {#await userPromise()}
 	loading user
 {:then user}
-	hi {JSON.stringify(user)}	
+	hi {JSON.stringify(user)}
 {/await}
-

@@ -1,12 +1,7 @@
 <script>
-    import Banner from '$components/Banner.svelte'
+	import '../app.scss';
+	import Banner from '$lib/Banner.svelte';
 </script>
 
-<style>
-    :root {
-        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    }
-</style>
-    
-<Banner/>
-<slot/>
+<Banner />
+<slot />

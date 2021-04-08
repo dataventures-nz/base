@@ -1,8 +1,0 @@
-{
-  "domain": "dataventures.au.auth0.com",
-  "client_id": "NnxXRfQBM3bxOa8xJr2E4ZQNDHRmthPI",
-  "scope": "openid",
-  "audience": "PopulationProducts",
-  "cacheLocation": "localstorage",
-  "useRefreshTokens":true
-}
