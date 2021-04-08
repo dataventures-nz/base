@@ -1,66 +1,66 @@
-import { writable } from 'svelte/store';
+import { writable } from 'svelte/store'
 
 export const createDebounceStore = (initialValue, fn) => {
-	const { subscribe, set } = writable(initialValue);
-	const errorStore = writable(undefined);
-	const currentlyProcessing = writable(true);
-	let processing = true;
-	let nextValue = undefined;
-	let currentValue = undefined;
-	let kick = false;
+  const { subscribe, set } = writable(initialValue)
+  const errorStore = writable(undefined)
+  const currentlyProcessing = writable(true)
+  let processing = true
+  let nextValue = undefined
+  let currentValue = undefined
+  let kick = false
 
-	// TODO: put in starting as a stage. setting processing to false, when there IS processing happening seems "bad"
-	// having the system start with processing == true when it isn't doesn't seem so good either.
+  // TODO: put in starting as a stage. setting processing to false, when there IS processing happening seems "bad"
+  // having the system start with processing == true when it isn't doesn't seem so good either.
 
-	const setProcessing = (x) => {
-		processing = x;
-		currentlyProcessing.set(x);
-	};
+  const setProcessing = x => {
+    processing = x
+    currentlyProcessing.set(x)
+  }
 
-	const complete = (result) => {
-		set(result);
-		setProcessing(false);
-		checkQueue();
-	};
+  const complete = result => {
+    set(result)
+    setProcessing(false)
+    checkQueue()
+  }
 
-	const handleError = (reason) => {
-		errorStore.set(reason);
-		setProcessing(false);
-		checkQueue();
-	};
+  const handleError = reason => {
+    errorStore.set(reason)
+    setProcessing(false)
+    checkQueue()
+  }
 
-	const startProcessing = () => {
-		currentValue = nextValue;
-		kick = false;
-		setProcessing(true);
-		fn(currentValue).then(complete).catch(handleError);
-	};
+  const startProcessing = () => {
+    currentValue = nextValue
+    kick = false
+    setProcessing(true)
+    fn(currentValue).then(complete).catch(handleError)
+  }
 
-	const checkQueue = () => {
-		if (processing) {
-			return;
-		}
-		if (kick || JSON.stringify(currentValue) != JSON.stringify(nextValue)) {
-			startProcessing();
-		}
-	};
+  const checkQueue = () => {
+    if (processing) {
+      return
+    }
+    if (kick || JSON.stringify(currentValue) != JSON.stringify(nextValue)) {
+      startProcessing()
+    }
+  }
 
-	return {
-		currentlyProcessing,
-		kick: () => {
-			kick = true;
-			checkQueue();
-		},
-		start: () => {
-			setProcessing(false);
-			checkQueue();
-		},
-		queue: (value) => {
-			nextValue = value;
-			checkQueue();
-		},
-		error: { subscribe: errorStore.subscribe },
-		clearError: () => errorStore.set(undefined),
-		subscribe
-	};
-};
+  return {
+    currentlyProcessing,
+    kick: () => {
+      kick = true
+      checkQueue()
+    },
+    start: () => {
+      setProcessing(false)
+      checkQueue()
+    },
+    queue: value => {
+      nextValue = value
+      checkQueue()
+    },
+    error: { subscribe: errorStore.subscribe },
+    clearError: () => errorStore.set(undefined),
+    subscribe
+  }
+}

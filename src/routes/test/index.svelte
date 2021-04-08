@@ -1,8 +1,7 @@
 <script>
-	import {MaterialApp,Button} from "svelte-materialify";
+  import { MaterialApp, Button } from 'svelte-materialify'
 </script>
 
 <MaterialApp>
-	<Button>Hello</Button>
+  <Button>Hello</Button>
 </MaterialApp>
-
