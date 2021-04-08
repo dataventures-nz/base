@@ -1,20 +1,20 @@
 <script>
-	import { addCollection } from '$lib/api.js';
-	export let admin;
-	export let close;
-	let db;
-	let collection;
-	$: canItHappen = db && collection;
-	const makeItHappen = async () => {
-		await addCollection(db, collection);
-		close();
-	};
+  import { addCollection } from '$lib/api.js'
+  export let admin
+  export let close
+  let db
+  let collection
+  $: canItHappen = db && collection
+  const makeItHappen = async () => {
+    await addCollection(db, collection)
+    close()
+  }
 </script>
 
 <select bind:value={db}>
-	{#each admin.canAddCollectionTo as dbs}
-		<option value={dbs}>{dbs}</option>
-	{/each}
+  {#each admin.canAddCollectionTo as dbs}
+    <option value={dbs}>{dbs}</option>
+  {/each}
 </select><br />
 
 <input type="text" bind:value={collection} /><br />

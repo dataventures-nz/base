@@ -1,48 +1,48 @@
 <script>
-	import DatePicker from '$lib/datepicker/DatePicker.svelte';
-	import * as dfunc from 'date-fns';
+  import DatePicker from '$lib/datepicker/DatePicker.svelte'
+  import * as dfunc from 'date-fns'
 
-	export let data;
-	export let match;
-	export let isAllowed;
-	export let field = 'time';
-	let startDate;
-	let endDate;
+  export let data
+  export let match
+  export let isAllowed
+  export let field = 'time'
+  let startDate
+  let endDate
 
-	$: firstofStartmonth = dfunc.startOfMonth(startDate);
-	$: lastofStartmonth = dfunc.endOfMonth(startDate);
-	$: firstofEndmonth = dfunc.startOfMonth(endDate);
-	$: lastofEndmonth = dfunc.endOfMonth(endDate);
+  $: firstofStartmonth = dfunc.startOfMonth(startDate)
+  $: lastofStartmonth = dfunc.endOfMonth(startDate)
+  $: firstofEndmonth = dfunc.startOfMonth(endDate)
+  $: lastofEndmonth = dfunc.endOfMonth(endDate)
 
-	export let pipeline;
+  export let pipeline
 
-	$: pipeline = [
-		{
-			$match: {
-				$or: [
-					{
-						[field]: {
-							$gte: firstofStartmonth,
-							$lte: lastofStartmonth
-						}
-					},
-					{
-						[field]: {
-							$gte: firstofEndmonth,
-							$lte: lastofEndmonth
-						}
-					}
-				]
-			}
-		}
-	];
+  $: pipeline = [
+    {
+      $match: {
+        $or: [
+          {
+            [field]: {
+              $gte: firstofStartmonth,
+              $lte: lastofStartmonth
+            }
+          },
+          {
+            [field]: {
+              $gte: firstofEndmonth,
+              $lte: lastofEndmonth
+            }
+          }
+        ]
+      }
+    }
+  ]
 
-	$: match = {
-		[field]: {
-			$gte: startDate,
-			$lte: endDate
-		}
-	};
+  $: match = {
+    [field]: {
+      $gte: startDate,
+      $lte: endDate
+    }
+  }
 </script>
 
 <DatePicker bind:selected={startDate} isAllowed />

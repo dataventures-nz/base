@@ -1,10 +1,10 @@
 [
-	{
-		"endpoint": "https://atlas.population-density.dataventures.nz",
-		"tables": []
-	},
-	{
-		"endpoint": "https://atlas.spend-density.dataventures.nz",
-		"tables": []
-	}
+  {
+    "endpoint": "https://atlas.population-density.dataventures.nz",
+    "tables": []
+  },
+  {
+    "endpoint": "https://atlas.spend-density.dataventures.nz",
+    "tables": []
+  }
 ]

@@ -1,6 +1,6 @@
 [
-	{
-		"endpoint": "https://atlas.population-density.dataventures.nz",
-		"tables": ["noon_by_rto", "hourly_materialised"]
-	}
+  {
+    "endpoint": "https://atlas.population-density.dataventures.nz",
+    "tables": ["noon_by_rto", "hourly_materialised"]
+  }
 ]
