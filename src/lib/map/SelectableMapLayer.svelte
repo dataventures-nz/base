@@ -12,7 +12,6 @@
   export let selectMode = single_only
   export let id_accessor = undefined //id_accessor gets id off feature?
   export let reverse_accessor = undefined
-  export let mapSelectedColor = '#446a9f'
   const mapStore = getContext('mapStore')()
   const map = mapStore.map
 
@@ -28,11 +27,6 @@
 
   // stuff the baseSelection has the map doesn't
   const notMapSelected = () => _.without(selected, ...selectedOnMap)
-
-  const reset = () => {
-    selected = []
-    sync(selected)
-  }
 
   const sync = s => {
     const removing = onlyMapSelected()

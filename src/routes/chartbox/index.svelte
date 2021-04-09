@@ -1,6 +1,5 @@
 <script>
   import * as d3 from 'd3'
-  import _ from 'lodash'
   import WaterfallGraph from '$lib/charts/WaterfallGraph.svelte'
   import { single_only } from '$lib/map/select_modes.js'
   import QueryMap from './QueryMap.svelte'
@@ -44,24 +43,10 @@
     return pipeline
   }
 
-  const clearmapselection = function () {
-    layerlist[currentlayer].map.selection = []
-  }
-
-  const cleardateselection = function () {
-    datefield = ''
-    startDate.setValue(null)
-    endDate.setValue(null)
-    startDate.associated.value = null
-    endDate.associated.value = null
-    startdatedata = null
-    enddatedata = null
-  }
-
   let period = 7 * 24 * 3600000
   let offset = 3.5 * 24 * 3600000
-  let colorScale = d3.scaleLinear().domain([0, 14]).range(['white', 'darkblue'])
-  let strokecolorScale = d3.scaleLinear().domain([14, 0]).range(['white', 'darkblue'])
+  // let colorScale = d3.scaleLinear().domain([0, 14]).range(['white', 'darkblue'])
+  // let strokecolorScale = d3.scaleLinear().domain([14, 0]).range(['white', 'darkblue'])
   let opacity = 0.3 //= d3.scaleLinear().domain([0,16]).range([0.2,0.7])
 
   let options = {
@@ -79,7 +64,6 @@
     // fillOpacity:(d,i)=>1
   }
 
-  let height
   let width
 
   let brokenaxis = 0

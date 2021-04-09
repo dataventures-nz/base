@@ -1,5 +1,5 @@
 <script>
-  import { onMount, getContext, setContext, onDestroy } from 'svelte'
+  import { getContext, onDestroy } from 'svelte'
   import { createEventDispatcher } from 'svelte'
   const mapStore = getContext('mapStore')()
   const map = mapStore.map

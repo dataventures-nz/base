@@ -70,8 +70,4 @@
     border-radius: 0.2em;
     background: white;
   }
-
-  button {
-    display: block;
-  }
 </style>

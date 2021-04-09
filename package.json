@@ -5,7 +5,7 @@
     "dev": "svelte-kit dev",
     "build": "svelte-kit build",
     "start": "svelte-kit start --host 0.0.0.0",
-    "lint": "prettier --check . && eslint --ignore-path .gitignore .",
+    "lint": "prettier --write . && eslint --ignore-path .gitignore .",
     "format": "prettier --write ."
   },
   "dependencies": {

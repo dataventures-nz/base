@@ -2,7 +2,9 @@
   import { getContext } from 'svelte'
   export let x = 0
 
-  let { height, width, margin, xScale, yScale, xextent, yextent } = getContext('constants')
+  let c = getContext('constants')
+  let height = c.height
+  let margin = c.margin
 </script>
 
 <g>

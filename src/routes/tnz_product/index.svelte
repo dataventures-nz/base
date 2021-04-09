@@ -12,7 +12,6 @@
   import * as d3 from 'd3'
   import * as df from 'date-fns'
 
-  let filename = 'graph'
   let datefield = 'time'
   let collection = 'noon_by_rto'
   let month = df.addMonths(new Date(), -1)
@@ -44,7 +43,7 @@
   let selection = []
   let dbfield = ''
 
-  function make_match(selection, dbfield, datefield, month) {
+  function make_match(selection, dbfield) {
     let newmatch = {}
     if (dbfield && selection) {
       const idlist = [+selection.area_id]
@@ -133,7 +132,6 @@
   $: console.log({ data })
   // $: console.log(selection)
 
-  let svg
   let width
   let chartdiv
   $: if (chartdiv) {
@@ -246,18 +244,6 @@
 </section>
 
 <style type="text/scss">
-  button {
-    width: 100%;
-  }
-
-  input {
-    cursor: pointer;
-    display: block;
-    font-size: 1em;
-    max-width: 100%;
-    outline: thin;
-  }
-
   .box {
     position: relative;
     border: 1px solid black;
