@@ -7,7 +7,6 @@
   import DatePicker from '$lib/datepicker/DatePicker.svelte'
   import { query } from '$lib/api.js'
   import ChartPrinter from '$lib/charts/ChartPrinter.svelte'
-  import { onDestroy } from 'svelte'
   let filename = 'polargraph'
   let datefield = 'time'
   let table = 'hourly_materialised'
@@ -147,10 +146,6 @@
 </section>
 
 <style type="text/scss">
-  button {
-    width: 100%;
-  }
-
   input {
     cursor: pointer;
     display: block;

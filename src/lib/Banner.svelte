@@ -4,7 +4,7 @@
 
 <nav>
   <div class="leftitems">
-    <a class="logo" href="/"><img src="svg/DV-logo-Horizontal-reverse.svg" /></a>
+    <a class="logo" href="/"><img alt="DataVentures logo" src="svg/DV-logo-Horizontal-reverse.svg" /></a>
     <a class="item" href="/test">Test</a>
     <a class="item" href="/user">User</a>
     <a class="item" href="/admin">Admin</a>

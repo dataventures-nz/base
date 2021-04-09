@@ -1,5 +1,5 @@
 <script>
-  import { tick, getContext, setContext, onDestroy, onMount } from 'svelte'
+  import { getContext, setContext, onDestroy } from 'svelte'
 
   const mapStore = getContext('mapStore')()
   export let name

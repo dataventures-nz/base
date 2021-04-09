@@ -1,6 +1,5 @@
 <script>
   import { onDestroy } from 'svelte'
-  import * as d3 from 'd3'
   import { getContext } from 'svelte'
   export let id = 'Scatter' + Math.random()
   export let data = [

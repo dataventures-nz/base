@@ -449,7 +449,7 @@
   </section>
 </Crossfilter>
 
-<style type="text/scss">
+<style lang="scss">
   input {
     cursor: pointer;
     display: inline-block;

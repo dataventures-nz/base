@@ -1,20 +1,13 @@
 <script>
-  import Cursor from '$lib/charts/linegraph/Cursor.svelte'
   import LineGraph from '$lib/charts/linegraph/LineGraph.svelte'
   import LineTrace from '$lib/charts/linegraph/LineTrace.svelte'
-  import StackedArea from '$lib/charts/linegraph/StackedArea.svelte'
-  import StackedBar from '$lib/charts/linegraph/StackedBar.svelte'
   import Scatter from '$lib/charts/linegraph/Scatter.svelte'
-  import { xor_only } from '$lib/map/select_modes.js'
+  import { single_only } from '$lib/map/select_modes.js'
   import QueryMap from './QueryMap.svelte'
-  import VertCursor from './VertCursor.svelte'
-  import BoxCursor from './BoxCursor.svelte'
   import default_layerlist from './field_to_layer.json'
   import DatePicker from '$lib/datepicker/DatePicker.svelte'
   import { query } from '$lib/api.js'
   import ChartPrinter from '$lib/charts/ChartPrinter.svelte'
-  import { onDestroy } from 'svelte'
-  import * as d3 from 'd3'
 
   let filename = 'graph'
   let datefield = 'time'
@@ -54,7 +47,6 @@
       unknown: true
     }
     const pipeline = [{ $match: newmatch }, { $project: projection }]
-    // const pipeline = [{$match:newmatch}]
 
     return pipeline
   }
@@ -88,22 +80,12 @@
     dataarrays = newdataarrays
   }
 
-  let data2 = [
-    { x: 0, y: 0 },
-    { x: 0.5, y: 1 },
-    { x: 1, y: 0 }
-  ]
-
   let svg
   let width
   let chartdiv
   $: if (chartdiv) {
     width = chartdiv.getBoundingClientRect().width - 12
   }
-
-  const i1 = [0.5, 0.8]
-  const i2 = 'zero'
-  const i3 = [new Date(2020, 3, 1), 0]
 
   let layers = [
     {
@@ -131,27 +113,6 @@
       active: false
     }
   ]
-  let stack
-  // $: console.log(stack)
-
-  function content(sx) {
-    // let data = stack[1].map(d=>d.data)
-    if (stack) {
-      let m = d3.minIndex(stack[1], d => Math.abs(d.data.time - sx))
-
-      if (stack[1][m]) {
-        let d = stack[1][m]['data']
-        return [
-          'time: ' + d.time,
-          'total: ' + d.count,
-          'visitors: ' + (d.domestic * 1 + d.international * 1 + d.unknown * 1)
-        ]
-      } else {
-        return ['something else is wrong']
-      }
-    }
-    return ['something is wrong']
-  }
 
   $: console.log(dataarrays)
 </script>
@@ -174,7 +135,7 @@
       </div>
       <div class="box">
         <p>Select an area</p>
-        <QueryMap height="700" selectMode={xor_only} {allowedlayers} bind:layerlist currentlayer={4} />
+        <QueryMap height="700" selectMode={single_only} {allowedlayers} bind:layerlist currentlayer={4} />
       </div>
     </div>
     <div class="col-md-7">
@@ -185,29 +146,6 @@
           <ChartPrinter {filename} {svg} />
         </div>
       </div>
-      <!-- <div class="row box">
-        <div class="col-md-12" bind:this={chartdiv}>
-          <LineGraph  yextent = {[-2,2]} intercepts = {"zero"}>
-            <LineTrace stroke="red" data ={[{x:-3,y:0},{x:3,y:1}]}></LineTrace>
-            <LineTrace data ={[{x:0.0,y:-0.5},{x:5,y:3}]}></LineTrace>
-            <LineTrace data ={[{x:0,y:0},{x:7,y:2}]}></LineTrace>
-            <LineTrace data ={data2} ></LineTrace>
-          </LineGraph>
-        </div>
-      </div>
-      <div class="row box">
-        <div class="col-md-12">
-          <LineGraph xtime={true} width = {800} ysuppressZero={false} intercepts = {"bottom_left"}>
-            {#if dataarrays}
-              {#each Object.values(dataarrays) as dataarray,i}
-                {#await dataarray.data then d} 
-                  <LineTrace data = {d} xaccessor={d=>d.time} yaccessor={d=>+d.count}></LineTrace>
-                {/await}
-              {/each}   
-            {/if}
-          </LineGraph>
-        </div>
-      </div> -->
       <div class="row box">
         <div class="col-md-12">
           <LineGraph
@@ -246,10 +184,6 @@
 </section>
 
 <style type="text/scss">
-  button {
-    width: 100%;
-  }
-
   input {
     cursor: pointer;
     display: block;

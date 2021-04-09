@@ -3,7 +3,8 @@
   export let x = 0
   export let content = ['line1', 'a much longer line 2 blah de blah', 'some more content']
 
-  let { height, width, margin, xScale, yScale, xextent, yextent } = getContext('constants')
+  let c = getContext('constants')
+  let xScale = c.xScale
   let right = true
   let inner_g
   let lineheight = 0

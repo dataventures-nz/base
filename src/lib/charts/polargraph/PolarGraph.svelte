@@ -1,23 +1,11 @@
 <script>
   import * as d3 from 'd3'
   import { setContext } from 'svelte'
-  export let data = undefined
   export let svg = undefined
-  export let chartheight = 500
-  export let thetaMax = false
-  export let rMax = false
   export let margin = 20
   export let plotRadius = 200
-  export let closed = false
   export let axisTitles = new Array(4).fill('')
   export let axisOffset = 0
-  export let showPoints = true
-  export let label = false
-  export let arcs = false
-  export let pathOptions = {}
-  export let str = 'black'
-  export let fill = 'none'
-
   export let arcOptions = {}
   const defaultArcOptions = {
     inner: 0.95 * plotRadius,
@@ -27,7 +15,6 @@
     fill: ['lightgrey', 'darkgrey'],
     stroke: ['lightgrey', 'darkgrey']
   }
-  export let labelAccessor = d => d.label
   export let gradient = false
   export let gradientStops = [
     { stop: '0%', color: 'white' },
@@ -76,43 +63,5 @@
       </g>
     {/each}
   {/if}
-  <!-- <g transform = {"translate("+svgSize+","+svgSize+")"}>
-    {#if gradient}
-      <path d={line(data)} style="fill:none;stroke:url(#gradient)"></path>
-    {:else}
-      <path d={line(data)} style={"fill:"+fill+";stroke:"+str}></path>
-    {/if}
-  </g> -->
   <slot />
-  {#if showPoints}
-    {#each data as d, i}
-      <g
-        class="tooltip"
-        class:hidden={!d.clicked}
-        on:click={() => (d.clicked = !d.clicked)}
-        transform={'translate(' + (x(d) + svgSize) + ',' + (y(d) + svgSize) + ')'}
-      >
-        <circle r="5" stroke="black" fill="none" />
-        <text>{labelAccessor(d)}</text>
-      </g>
-    {/each}
-  {/if}
 </svg>
-
-<style>
-  svg {
-    /* background-color: lemonchiffon; */
-  }
-
-  .hidden {
-    /* visibility: hidden; */
-    opacity: 0;
-  }
-
-  .hidden:hover {
-    opacity: 1;
-  }
-  .tooltip text {
-    pointer-events: none;
-  }
-</style>
