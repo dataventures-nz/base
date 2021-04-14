@@ -62,7 +62,7 @@
 <g>
   {#each data as point}
     {#each _layers as layer}
-      <slot y={$yScale(layer.accessor(point))} x={$xScale(xaccessor(point))}>
+      <slot y={$yScale(layer.accessor(point))} x={$xScale(xaccessor(point))} {point}>
         <circle r="5" cy={$yScale(layer.accessor(point))} cx={$xScale(xaccessor(point))} {...layer.style} />
       </slot>
     {/each}

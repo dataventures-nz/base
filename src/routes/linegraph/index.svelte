@@ -1,6 +1,7 @@
 <script>
   import LineGraph from '$lib/charts/linegraph/LineGraph.svelte'
   import LineTrace from '$lib/charts/linegraph/LineTrace.svelte'
+  import Pie from '$lib/charts/Pie.svelte'
   import Scatter from '$lib/charts/linegraph/Scatter.svelte'
   import { single_only } from '$lib/map/select_modes.js'
   import QueryMap from './QueryMap.svelte'
@@ -8,12 +9,14 @@
   import DatePicker from '$lib/datepicker/DatePicker.svelte'
   import { query } from '$lib/api.js'
   import ChartPrinter from '$lib/charts/ChartPrinter.svelte'
+  import { timeparse } from '$lib/_utils/utils.js'
+  import { foodscale } from '$lib/_utils/yootils.js'
 
   let filename = 'graph'
   let datefield = 'time'
   let table = 'hourly_materialised'
-  let startDate = new Date(2020, 3, 1, 5)
-  let endDate = new Date(2020, 3, 1, 19)
+  let startDate = new Date(2020, 3, 1, 12)
+  let endDate = new Date(2020, 3, 2, 12)
   let layerlist = default_layerlist
   let allowedlayers = ['sa2_2018_code']
   let currentlayer = 0
@@ -53,7 +56,7 @@
 
   function clean(data) {
     data.map(function (d) {
-      d.time = new Date(d.time)
+      d.time = timeparse(d.time)
       d.r = +d.count
       d.theta = d.time.getDay() + d.time.getHours() / 24
     })
@@ -65,7 +68,6 @@
 
   function addtodataarrays(selection) {
     const match = make_match([selection], dbfield, datefield, startDate, endDate)
-    console.log(match)
     const data = query('population', table, match).then(clean)
     return { selection, data, color: '#' + Math.floor(Math.random() * 16777215).toString(16) }
   }
@@ -96,7 +98,7 @@
     },
     {
       name: 'y2',
-      accessor: d => +d.domestic,
+      accessor: d => +d.domestic + +d.local + +d.international + +d.unknown,
       style: { fill: 'yellow', stroke: 'none' },
       active: true
     },
@@ -114,7 +116,6 @@
     }
   ]
 
-  $: console.log(dataarrays)
 </script>
 
 <section class="container-fluid select-wrapper">
@@ -135,7 +136,7 @@
       </div>
       <div class="box">
         <p>Select an area</p>
-        <QueryMap height="700" selectMode={single_only} {allowedlayers} bind:layerlist currentlayer={4} />
+        <QueryMap height={700} selectMode={single_only} {allowedlayers} bind:layerlist currentlayer={4} />
       </div>
     </div>
     <div class="col-md-7">
@@ -151,7 +152,8 @@
           <LineGraph
             bind:svg
             xtime={true}
-            width={800}
+            width={1000}
+            height={600}
             ysuppressZero={false}
             intercepts={'bottom_left'}
             let:xScale
@@ -164,14 +166,20 @@
                   {yScale}
                   data={d}
                   xaccessor={d => d.time}
-                  yaccessor={d => +d.domestic}
+                  yaccessor={layers[1].accessor}
                   style={{ stroke: 'black', 'stroke-width': '0.5px', fill: 'none' }}
                 />
-                <!-- <StackedBar data = {d} xaccessor={d=>d.time} {layers} bind:stacked_data={stack} gap={0}></StackedBar> -->
-                <Scatter data={d} xaccessor={d => d.time} {layers} {xScale} {yScale} let:x let:y>
-                  <!-- <rect width=4 height=4 transform={"translate("+(x-2)+","+(y-2)+")"}></rect> -->
-                  <g transform={'translate(' + (x - 20) + ',' + (y - 20) + ')'}>
-                    <image width="40" height="40" href="./assets/doge.png" />
+                <Scatter data={d} xaccessor={d => d.time} {layers} {xScale} {yScale} let:x let:y let:point>
+                  <rect width=4 height=4 transform={"translate("+(x-2)+","+(y-2)+")"}></rect>
+                  <g transform={'translate(' + x + ',' + y + ')'}>
+                    <!-- <image transform="translate(-15,-15)" width="30" height="30" href="./assets/doge.png" /> -->
+                    <Pie
+                      data={point}
+                      accessor={d => [+d.domestic, +d.local, +d.international, +d.unknown]}
+                      innerRadius={12}
+                      outerRadius={20}
+                      colorScale={foodscale}
+                    />
                   </g>
                 </Scatter>
               {/await}

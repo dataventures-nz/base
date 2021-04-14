@@ -39,8 +39,8 @@ function population_before_pre(chartIndex) {
         {
           $match: {
             time: {
-              $gte: s1,
-              $lte: df.addDays(s1, period)
+              $gte: df.add(s1,{hours:12}),
+              $lte: df.add(s1,{days:period,hours:12})
             }
           }
         }
@@ -50,8 +50,8 @@ function population_before_pre(chartIndex) {
         {
           $match: {
             time: {
-              $gte: df.addDays(s2, alignWeekdays ? +1 * weekdayOffset : 0),
-              $lte: df.addDays(s2, period + (alignWeekdays ? +1 * weekdayOffset : 0))
+              $gte: df.add(s2,{days: (alignWeekdays ? +1 * weekdayOffset : 0) ,hours:12}),
+              $lte: df.add(s2,{days:period + (alignWeekdays ? +1 * weekdayOffset : 0),hours:12})
             }
           }
         }

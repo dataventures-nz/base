@@ -14,8 +14,7 @@
   export let map = undefined
   let container
   let maploaded
-  let mapStore
-
+  export let mapStore
   onDestroy(() => {
     if (map) map.remove()
   })

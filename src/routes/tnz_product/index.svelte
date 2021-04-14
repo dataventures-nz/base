@@ -129,8 +129,7 @@
 
   $: datefilter = dataArray => dataArray.filter(d => d.time >= df.startOfMonth(month) && d.time <= df.endOfMonth(month))
 
-  $: console.log({ data ,selection })
- 
+  $: console.log({ data, selection })
 
   let width
   let chartdiv
@@ -202,52 +201,59 @@
     </div>
     <div class="col-md-7">
       <!-- {#if selection[0]} -->
-        {#await data then d}
-          <div class="row box">
-            <div class="col-md-9">
-              <LineGraph 
-                xtime={true} 
-                width={800} 
-                ysuppressZero={false} 
-                intercepts={'bottom_left'} 
-                bind:svg={monthsvg}
-                let:xScale
-                let:yScale
-              >
-                <StackedArea data={datefilter(d.data)} xaccessor={d => d.time} {layers} bind:stacked_data={stack} {xScale}{yScale}/>
-                <Cursor {xScale} {yScale} let:x let:y let:sx let:sy>
-                  <VertCursor {x} />
-                  <!-- <BoxCursor {x} content={content(sx)} /> -->
-                </Cursor>
-              </LineGraph>
-            </div>
-            <div class="col-md-3">
-              <ChartPrinter filename={'monthchart'} svg={monthsvg} />
-            </div>
+      {#await data then d}
+        <div class="row box">
+          <div class="col-md-9">
+            <LineGraph
+              xtime={true}
+              width={800}
+              ysuppressZero={false}
+              intercepts={'bottom_left'}
+              bind:svg={monthsvg}
+              let:xScale
+              let:yScale
+            >
+              <StackedArea
+                data={datefilter(d.data)}
+                xaccessor={d => d.time}
+                {layers}
+                bind:stacked_data={stack}
+                {xScale}
+                {yScale}
+              />
+              <Cursor {xScale} {yScale} let:x let:y let:sx let:sy>
+                <VertCursor {x} />
+                <!-- <BoxCursor {x} content={content(sx)} /> -->
+              </Cursor>
+            </LineGraph>
           </div>
-          <div class="row box">
-            <div class="col-md-9">
-              <LineGraph
-                xtime={true}
-                width={800}
-                ysuppressZero={false}
-                intercepts={'bottom_left'}
-                bind:svg={aggregatesvg}
-                let:xScale
-                let:yScale
-              >
-                <StackedArea data={d.aggregate} xaccessor={d => d.time} {layers} {xScale}{yScale}/>
-                <Cursor {xScale} {yScale} let:x let:y let:sx let:sy>
-                  <VertCursor {x} />
-                  <!-- <BoxCursor {x} content = {content(sx)}></BoxCursor> -->
-                </Cursor>
-              </LineGraph>
-            </div>
-            <div class="col-md-3">
-              <ChartPrinter filename={'monthchart'} svg={aggregatesvg} />
-            </div>
+          <div class="col-md-3">
+            <ChartPrinter filename={'monthchart'} svg={monthsvg} />
           </div>
-        {/await}
+        </div>
+        <div class="row box">
+          <div class="col-md-9">
+            <LineGraph
+              xtime={true}
+              width={800}
+              ysuppressZero={false}
+              intercepts={'bottom_left'}
+              bind:svg={aggregatesvg}
+              let:xScale
+              let:yScale
+            >
+              <StackedArea data={d.aggregate} xaccessor={d => d.time} {layers} {xScale} {yScale} />
+              <Cursor {xScale} {yScale} let:x let:y let:sx let:sy>
+                <VertCursor {x} />
+                <!-- <BoxCursor {x} content = {content(sx)}></BoxCursor> -->
+              </Cursor>
+            </LineGraph>
+          </div>
+          <div class="col-md-3">
+            <ChartPrinter filename={'monthchart'} svg={aggregatesvg} />
+          </div>
+        </div>
+      {/await}
       <!-- {/if} -->
     </div>
   </div>

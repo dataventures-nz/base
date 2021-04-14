@@ -17,6 +17,7 @@
   import * as df from 'date-fns'
   import Crossfilter from '$lib/query/Crossfilter.svelte'
   import Filter from '$lib/query/Filter.svelte'
+  import { timeparse } from '$lib/_utils/utils.js'
 
   let mode = population_before
 
@@ -91,10 +92,8 @@
       d.Domestic = +d.domestic
       d.International = +d.international
       d.Local = +d.local
-      d.Unknown = +d.unknown
-      if (typeof d.time == 'string') {
-        d.time = new Date(d.time.substr(0, 16))
-      }
+      d.Unknown = +d.unknown 
+      d.time = timeparse(d.time)
     })
     data.sort((a, b) => a.time - b.time)
     return data
@@ -185,7 +184,7 @@
 </script>
 
 <Crossfilter {db} collection={table}>
-  <Filter useMatches={false} brush={mode.commonFilter($selection, dbfield, startDate, endDate)} />
+  <Filter useMatches={false} brush={mode.commonFilter($selection, dbfield, df.add(startDate,{hours:12}), df.add(endDate,{hours:12}))} />
   <section class="container-fluid select-wrapper">
     <div class="row">
       <div class="col-md-12">
