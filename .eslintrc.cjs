@@ -18,6 +18,7 @@ module.exports = {
     node: true
   },
   rules: {
-    '@typescript-eslint/explicit-module-boundary-types': 'off'
+    '@typescript-eslint/explicit-module-boundary-types': 'off',
+    'a11y-missing-attribute': 'off'
   }
 }

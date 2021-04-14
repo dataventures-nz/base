@@ -55,8 +55,6 @@
     }
   }
 
-  const mapcolour = '#446a9f'
-
   function accessor_for(map) {
     let p = map.properties
     return feature => {

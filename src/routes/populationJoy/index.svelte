@@ -1,6 +1,5 @@
 <script>
   import * as d3 from 'd3'
-  import _ from 'lodash'
   import WaterfallGraph from '$lib/charts/WaterfallGraph.svelte'
   import ColorPicker from '$lib/ToggledColorPicker.svelte'
   import { onMount } from 'svelte'
@@ -37,7 +36,6 @@
   // onMount(()=>d=d3.csv("/data/grid10x50.csv").then(clean))
   onMount(() => (d = d3.csv('/data/grid10x20.csv').then(clean)))
 
-  let height
   let width
 
   let brokenaxis = 0
@@ -55,7 +53,6 @@
   let hasbackground = false
 
   function clean(rawdata) {
-    let groups = {}
     let _groups = {}
 
     let data = rawdata.filter(d => d.NYECount)
@@ -155,10 +152,6 @@
 </section>
 
 <style type="text/scss">
-  button {
-    width: 100%;
-  }
-
   input {
     cursor: pointer;
     display: block;

@@ -1,5 +1,4 @@
 <script>
-  import * as df from 'date-fns'
   import * as d3 from 'd3'
 
   export let extent = [new Date(2020, 0, 1), new Date(2020, 1, 1)]

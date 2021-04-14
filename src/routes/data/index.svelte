@@ -303,10 +303,8 @@
   .hovershow {
     display: none;
   }
+
   .hoverer:hover {
-    .hoverhide {
-      display: none;
-    }
     .hovershow {
       display: inline;
     }

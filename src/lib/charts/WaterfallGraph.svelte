@@ -12,7 +12,6 @@
   export let yextent = [0, 1]
   export let yaccessor = d => +d.y
   export let xaccessor = d => d.offset
-  // export let line_only = false
   export let stroke = (d, i) => 'black'
   export let fill = (d, i) => 'black'
   export let background = '#ffffff'
@@ -107,7 +106,7 @@
     }
   }
 
-  const dragend = e => {
+  const dragend = () => {
     mousedown = false
   }
 
@@ -117,7 +116,7 @@
 
   $: {
     yscale.domain(options.ydomain).range([options.height * position[0], 0])
-    area.y0(d => yscale(options.yaccessor(d))).y1(d => yscale(brokenaxis * options.ydomain[1]))
+    area.y0(d => yscale(options.yaccessor(d))).y1(() => yscale(brokenaxis * options.ydomain[1]))
     line.y(d => yscale(options.yaccessor(d)))
   }
   $: {
