@@ -1,7 +1,9 @@
 <script>
-  import '../app.scss'
   import Banner from '$lib/Banner.svelte'
+  import { MaterialApp } from 'svelte-materialify'
 </script>
 
-<Banner />
-<slot />
+<MaterialApp>
+  <Banner />
+  <slot />
+</MaterialApp>
