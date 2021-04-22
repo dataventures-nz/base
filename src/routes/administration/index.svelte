@@ -1,14 +1,14 @@
 <script>
-  import { admin_url, fetch_json, setRestriction } from '$lib/api.js'
-  import AddCollectionForm from './forms/AddCollectionForm.svelte'
-  import AddMaterialisedViewForm from './forms/AddMaterialisedViewForm.svelte'
-  import AddTagForm from './forms/AddTagForm.svelte'
-  import AddAdminForm from './forms/AddAdminForm.svelte'
-  import DeleteButton from './forms/DeleteButton.svelte'
+  import { admin_url, fetch_json, setRestriction, delAdmin, deleteNode, delLink } from '$lib/api.js'
+  import AddCollectionForm from './_forms/AddCollectionForm.svelte'
+  import AddMaterialisedViewForm from './_forms/AddMaterialisedViewForm.svelte'
+  import AddTagForm from './_forms/AddTagForm.svelte'
+  import AddAdminForm from './_forms/AddAdminForm.svelte'
+  import DeleteButton from './_forms/DeleteButton.svelte'
   import NodeList from './NodeList.svelte'
   import Node from './Node.svelte'
   import Schema from './Schema.svelte'
-  import Modal from './forms/Modal.svelte'
+  import Modal from './_forms/Modal.svelte'
 
   import {
     ExpansionPanels,
@@ -93,6 +93,28 @@
 
   const getAll = ids => nodes.filter(node => ids?.includes(node._id))
   const getAdminsOf = id => nodes.filter(user => user.type == 'user' && user?.admins?.includes(id))
+
+  const canDeleteMe = (node) => {
+    let reason = undefined
+    if (!node.parents.every(parent => nodes.map(x => x._id).includes(parent))) {
+      reason = "you can't delete a node when you do NOT admin all of it's parents."
+    } else if (node?.children?.length) {
+      reason = "you can't delete a node when it has children."
+    } 
+    console.log(reason)
+    return reason
+  }
+
+  const deleteMe = async () => {
+    const confirmed = confirm('Are you sure?')
+    if (confirmed) {
+      await deleteNode(node._id)
+      getData()
+    }
+  }
+
+
+  
 </script>
 
 <svelte:head><title>{title}</title></svelte:head>
@@ -130,7 +152,7 @@
       {#if node}
         <CardTitle class="justify-center">
           <div style="display:inline-block; transform: scale(2.0); align: center" >
-            <Node item={node} del={node.type != 'user'}/>
+            <Node item={node} del={!canDeleteMe(node)} on:delete={deleteMe}/>
           </div>
         </CardTitle>
 
@@ -138,20 +160,30 @@
 
           {#if parents.length>0}
             <CardTitle>Parents</CardTitle>
-            <NodeList del items={parents} on:selectItem={setNode} />
+            <NodeList items={parents} on:selectItem={setNode} />
           {/if}
           {#if node.type != 'user'}
             <CardTitle>Children</CardTitle>
-            <NodeList del items={children} on:selectItem={setNode} />
+            <NodeList del items={children} on:selectItem={setNode} on:delete={async e => {
+              console.log("deleting link between", node_id, e.detail)
+              await delLink(node_id, e.detail.item._id)
+              update()
+            }}/>
             <Button on:click={() => (showAddMaterialisedView = true)}>Add Materialised View</Button>
             <Button on:click={() => (showAddTag = true)}>Add Tag</Button><br>
           {/if}
           <CardTitle>Admined By</CardTitle>
-            <NodeList del items={adminedBy} on:selectItem={setNode} />
+            <NodeList del items={adminedBy} on:selectItem={setNode} on:delete={async e => {
+              console.log("deleting!!", node_id, e.detail)
+              await delAdmin(node_id, e.detail.item._id)
+              update()
+            }} />
+
             <Button on:click={() => (showAddAdmin = true)}>Add Admin</Button><br>
           {#if node.type == 'user'}
             <CardTitle>Admins</CardTitle>
-            <NodeList del items={admins} on:selectItem={setNode} />
+            <NodeList del items={admins} on:selectItem={setNode}
+         />
           {/if}
 
 
@@ -179,29 +211,8 @@
   </Col>
 </Row>
 
-{#if showAddCollection}
-  <Modal
-    on:close={() => {
-      showAddCollection = false
-      getData()
-    }}
-    let:close
-  >
-    <AddCollectionForm admin={me} {close} />
-  </Modal>
-{/if}
-
-{#if showAddTag}
-  <Modal
-    on:close={() => {
-      showAddTag = false
-      getData()
-    }}
-    let:close
-  >
-    <AddTagForm {nodes} {close} parent={node_id} />
-  </Modal>
-{/if}
+<AddCollectionForm bind:active={showAddCollection} admin={me} close={update}/>
+<AddTagForm bind:active={showAddTag} {nodes} close={update} parent={node_id} />
 
 {#if showAddMaterialisedView}
   <Modal
@@ -215,14 +226,4 @@
   </Modal>
 {/if}
 
-{#if showAddAdmin}
-  <Modal
-    on:close={() => {
-      showAddAdmin = false
-      getData()
-    }}
-    let:close
-  >
-    <AddAdminForm {nodes} {close} parent={node_id} />
-  </Modal>
-{/if}
+<AddAdminForm bind:active={showAddAdmin} {nodes} close={update} parent={node_id} />
