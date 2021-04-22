@@ -1,29 +1,28 @@
 <script>
+  import * as d3 from 'd3'
   import * as df from 'date-fns'
-  import { single_only } from '$lib/map/select_modes.js'
   import Choropleth from './Choropleth.svelte'
   import DatePicker from '$lib/datepicker/DatePicker.svelte'
   import ChartPrinter from '$lib/charts/ChartPrinter.svelte'
+  import ColorBar from '$lib/charts/ColorBar.svelte'
   import { timeparse } from '$lib/_utils/utils.js'
-  import { query, getSchema, extents } from '$lib/api.js'
-  import { mappable_fields, time_fields } from '$lib/_utils/schemautils.js'
+  import { query, getSchema } from '$lib/api.js'
+  import { mappable_fields } from '$lib/_utils/schemautils.js'
 
   let filename = 'graph'
   let datefield = 'time'
   let table = 'hourly_materialised'
   const db = 'population'
-  let date = new Date(2020, 3, 1)
+  let date = new Date(2020, 0, 1)
   let hours = 12
   let layerlist
   let layer
-  let allowedlayers = ['sa2_2018_code']
-  let currentlayer = 0
-  let selection = []
-  let dbfield = ''
   let startDate,endDate
 
-$: startDate = df.add(date,{hours})
-$: endDate = df.add(date,{hours:hours+1})
+$: {
+    startDate = df.add(date,{hours})
+    endDate = df.add(date,{hours:hours+1})
+  }
 
 
   let mapLayerPromise = getSchema(`&${db}/${table}`)
@@ -34,7 +33,7 @@ $: endDate = df.add(date,{hours:hours+1})
       return true
     })
 
-  function make_match(dbfield, datefield, startDate, endDate) {
+  function make_match(datefield, startDate, endDate) {
     let newmatch = {}
     if (datefield && (startDate || endDate)) {
       newmatch[datefield] = {}
@@ -70,7 +69,7 @@ $: endDate = df.add(date,{hours:hours+1})
   }
 
   function getdata(startDate,endDate) {
-    const match = make_match(dbfield, datefield, startDate, endDate)
+    const match = make_match(datefield, startDate, endDate)
     const data = query('population', table, match).then(clean)
     return data 
   }
@@ -85,32 +84,7 @@ $: endDate = df.add(date,{hours:hours+1})
     width = chartdiv.getBoundingClientRect().width - 12
   }
 
-  let layers = [
-    {
-      name: 'y1',
-      accessor: d => +d.local,
-      style: { fill: 'pink', stroke: 'none', 'fill-opacity': 0.5 },
-      active: false
-    },
-    {
-      name: 'y2',
-      accessor: d => +d.domestic + +d.local + +d.international + +d.unknown,
-      style: { fill: 'yellow', stroke: 'none' },
-      active: true
-    },
-    {
-      name: 'y2',
-      accessor: d => +d.international,
-      style: { fill: '#000', 'fill-opacity': 0.1 },
-      active: false
-    },
-    {
-      name: 'y2',
-      accessor: d => +d.unknown,
-      style: { fill: 'green', stroke: 'none' },
-      active: false
-    }
-  ]
+  let colorScale = d3.scaleLinear(["lime","salmon"]).domain([0,6])
 
 </script>
 
@@ -136,6 +110,9 @@ $: endDate = df.add(date,{hours:hours+1})
           <ChartPrinter {filename} {svg} />
         </div>
       </div>
+      <div class="box">
+        <ColorBar { colorScale }/>
+      </div>
     </div>
     <div class="col-md-7">
       <div class="box">
@@ -144,8 +121,10 @@ $: endDate = df.add(date,{hours:hours+1})
         {:then m}
           <Choropleth 
             height={850} 
-            {layer}
-            {data}
+            { layer }
+            { data }
+            bind:colorScale = { colorScale }
+            accessor = { d=> (+d.domestic+(+d.international)) }
             />
         {/await}
       </div>

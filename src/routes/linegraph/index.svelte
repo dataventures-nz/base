@@ -170,9 +170,9 @@
                   style={{ stroke: 'black', 'stroke-width': '0.5px', fill: 'none' }}
                 />
                 <Scatter data={d} xaccessor={d => d.time} {layers} {xScale} {yScale} let:x let:y let:point>
-                  <rect width=4 height=4 transform={"translate("+(x-2)+","+(y-2)+")"}></rect>
+                  <!-- <rect width=4 height=4 transform={"translate("+(x-2)+","+(y-2)+")"}></rect> -->
                   <g transform={'translate(' + x + ',' + y + ')'}>
-                    <!-- <image transform="translate(-15,-15)" width="30" height="30" href="./assets/doge.png" /> -->
+                    <image transform="translate(4,-3),rotate(45)" width="70" height="70" href="./assets/orang_transp.png" />
                     <Pie
                       data={point}
                       accessor={d => [+d.domestic, +d.local, +d.international, +d.unknown]}
@@ -180,6 +180,8 @@
                       outerRadius={20}
                       colorScale={foodscale}
                     />
+                    <!-- <image transform="translate(-15,-15)" width="30" height="30" href="./assets/doge.png" /> -->
+                    
                   </g>
                 </Scatter>
               {/await}

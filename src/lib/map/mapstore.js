@@ -16,8 +16,9 @@ export let createMapStore = mapOptions => {
   }
 
   const removeLayer = layer_id => {
+
     const ls = [...get(layers)]
-    ls.filter(layer => layer.layer_id == layer_id).forEach(layer_id => map.removeLayer(layer_id))
+    ls.filter(layer => layer.layer_id == layer_id).forEach(layer => map.removeLayer(layer.layer_id))
     layers.set(ls.filter(layer => layer.layer_id != layer_id))
   }
 

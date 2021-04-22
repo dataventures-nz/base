@@ -8,31 +8,40 @@
   export let height = 500
   export let layer
   export let data
-  export let accessor = d=>+d.count
-  export let matcher
-  export let colorScale = d3.scaleLinear(["white","blue"])  
-
+  export let accessor = d=> + d.count
+  export let colorScale = ()=>"black"
+  export let imposedDomain = undefined
+  
   let mapStore
+  let fill
+  $: console.log({imposedDomain})
 
-  matcher = ['match', ['get', layer.map.properties.id]]
+  $: data.then(d=> {
+        const ext = imposedDomain ? imposedDomain : d3.extent(d,accessor)
+        if (JSON.stringify(colorScale?.domain()) == JSON.stringify(ext)) {
+          return 
+        }
+      colorScale = colorScale?.domain(ext)
+      console.log({ext})
+  })
 
-  let fill = data.then(d=>{
-    let extent = d3.extent(d,accessor)
-    colorScale.domain(extent) 
-    return d})
-  .then(d=> {d.forEach(element => {
-      element.color = colorScale(accessor(element))
-      matcher.push(element[layer.db.field],element.color)
-    })
-    console.log(matcher.length)
-    matcher.push('rgba(0, 0, 0, 0)')
-     let fill = {
-      paint:{
-        'fill-color':matcher,
-        'fill-opacity': 0.8
+  $: 
+    fill = data.then(d=> {
+      let matcher = ['match', ['get', layer.map.properties.id]]
+      d.forEach(element => {
+        element.color = colorScale(accessor(element))
+        matcher.push(element[layer.db.field],element.color)
+      })
+      matcher.push('rgba(0, 0, 0, 0)')
+      let f = {
+        paint:{
+          'fill-color':matcher,
+          'fill-opacity': 0.8
+        }
       }
-    }
-    return fill})
+      return f
+    })
+  
 
   const lines = {
     paint: {
@@ -49,13 +58,6 @@ $: if(mapStore){
     map = mapStore.map 
   }  
 
-$: if(layers && $layers[0]){
-    console.log("features",$layers[0])
-    let features = map.queryRenderedFeatures({layers:[$layers[0].layer_id]})
-    console.log({feature:features[0]})
-    }
-$:console.log(colorScale)    
-
 </script>
 
 <div style="height:{height}px">
@@ -63,7 +65,7 @@ $:console.log(colorScale)
     bind:mapStore
     lat={-41.5}
     lon={172}
-    zoom={4.5}
+    zoom={5}
     minZoom={3.5}
     style="mapbox://styles/dataventures/cjzaospfz0i1l1cn3kcuof5ix"
   >
@@ -76,7 +78,6 @@ $:console.log(colorScale)
             options={lines}
           />
         {:then f}
-          {console.log("html",f)}
           <MapLayer
             id={layer.map.name + '-fill'}
             type="fill"

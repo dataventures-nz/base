@@ -1,9 +1,6 @@
 <script>
   import * as df from 'date-fns'
 
-  //  console.log(df)
-  // const dispatch = createEventDispatcher();
-
   // props
   export let date
   export let isAllowed = () => true
@@ -12,8 +9,6 @@
   const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']
 
   let firstofmonth, lastofmonth, sunday, lastday, dayarray
-
-  // console.log(df)
 
   $: firstofmonth = df.startOfMonth(date)
   $: lastofmonth = df.endOfMonth(date)
@@ -28,7 +23,7 @@
   }
 
   // const clickhandler = (day) => isAllowed(day) && date = day
-  $: console.log({ dayarray, date })
+
 </script>
 
 <div class="container">
