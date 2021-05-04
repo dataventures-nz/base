@@ -28,7 +28,7 @@ export const fetch_json = async (method, url, body) =>
     ? await nothing
     : await fetch(url, {
         method,
-        headers: await get_headers(),
+        headers: { Accept: 'text/json', ...(await get_headers()) },
         body: body ? EJSON.stringify(body) : undefined
       }).then(response => response.json())
 
