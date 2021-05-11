@@ -9,15 +9,16 @@ export let createMapStore = mapOptions => {
   let sources = writable([])
 
   const removeSource = source_id => {
-    const ls = get(layers)
+    const ls = [...get(layers)]
     ls.filter(layer => layer.source_id == source_id).forEach(layer => map.removeLayer(layer.layer_id))
     layers.set(ls.filter(layer => layer.source_id != source_id))
     sources.set(get(sources).filter(source => source.source_id != source_id))
   }
 
   const removeLayer = layer_id => {
-    const ls = get(layers)
-    ls.filter(layer => layer.layer_id == layer_id).forEach(layer_id => map.removeLayer(layer_id))
+
+    const ls = [...get(layers)]
+    ls.filter(layer => layer.layer_id == layer_id).forEach(layer => map.removeLayer(layer.layer_id))
     layers.set(ls.filter(layer => layer.layer_id != layer_id))
   }
 
@@ -32,11 +33,11 @@ export let createMapStore = mapOptions => {
   const addLayer = (source_id, layer_id, type, source_layer, options) => {
     let layer = { id: layer_id, type, 'source-layer': source_layer, source: source_id, ...options }
     map.addLayer(layer)
-    get(layers).push({ layer_id, source_id })
+    layers.set([...get(layers),{ layer_id, source_id }])
   }
 
   const removeAll = () => {
-    get(sources).foreach(source => removeSource(source.source_id))
+    [...get(sources)].forEach(source => removeSource(source.source_id))
     map.remove()
   }
 

@@ -33,22 +33,20 @@
 
 <div class="relative">
   <input type="text" on:focus={onFocus} value={format ? df.format(selected, format) : selected.toDateString()} />
-  {#if showDatePicker}
-    <div class="box" tabindex="-1" bind:this={datepicker} on:blur={() => (showDatePicker = false)}>
-      <div class="month-name">
-        <div class="center">
-          <div on:click={prev}>Prev</div>
-        </div>
-        <div id="monthtext" class="center">{monthYear(selected)}</div>
-        <div class="center">
-          <div on:click={next}>Next</div>
-        </div>
+  <div class="box" tabindex="-1" style={"display:"+ (showDatePicker? "inline-block":"none")} bind:this={datepicker} on:blur={() => (showDatePicker = false)}>
+    <div class="month-name">
+      <div class="center">
+        <div on:click={prev}>Prev</div>
       </div>
-      {#if showDays}
-        <Calendar bind:date={selected} bind:showDatePicker {isAllowed} />
-      {/if}
+      <div id="monthtext" class="center">{monthYear(selected)}</div>
+      <div class="center">
+        <div on:click={next}>Next</div>
+      </div>
     </div>
-  {/if}
+    {#if showDays}
+      <Calendar bind:date={selected} {isAllowed} />
+    {/if}
+  </div>
 </div>
 
 <style>

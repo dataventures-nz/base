@@ -75,7 +75,7 @@
     return normalise(newmatch)
   }
 
-  const curlhead = 'curl -X POST  -H "Content-Type: application/json" -H "Authorization: Bearer '
+  const curlhead = 'curl -X POST  -H "Content-Type: application/json" -H "Accept: text/csv" -H "Authorization: Bearer '
 
   let copyoptions = [
     {
@@ -257,7 +257,10 @@
   
   mydataframe &lt;- POST(
       url = "{api_url(service)}",
-      add_headers(Authorization = "Bearer {tokentext}"  
+      add_headers(
+        Accept= "text/csv",
+        Authorization = "Bearer {tokentext}"
+        ),  
       body = '{JSON.stringify(match)}',
       content_type_json()
     ) %&gt;%

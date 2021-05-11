@@ -3,8 +3,9 @@
   export let x = 0
 
   let c = getContext('constants')
-  let height = c.height
-  let margin = c.margin
+  let height = $c.height
+  let margin = $c.margin
+  console.log({ c, margin })
 </script>
 
 <g>

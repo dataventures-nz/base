@@ -30,6 +30,7 @@
         <ButtonGroupItem>Charts</ButtonGroupItem>
       </div>
       <ListItem on:click={() => goto('/chartbox')}>Waterfall</ListItem>
+      <ListItem on:click={() => goto('/choropleth')}>Choropleth</ListItem>
       <ListItem on:click={() => goto('/chartbox3')}>Polagraph</ListItem>
       <ListItem on:click={() => goto('/linegraph')}>Simple Line</ListItem>
       <ListItem on:click={() => goto('/populationJoy')}>Joy</ListItem>
