@@ -28,7 +28,7 @@ export const fetch_json = async (method, url, body) =>
     ? await nothing
     : await fetch(url, {
         method,
-        headers: await get_headers(),
+        headers: { Accept: 'text/json', ...(await get_headers()) },
         body: body ? EJSON.stringify(body) : undefined
       }).then(response => response.json())
 
@@ -51,10 +51,14 @@ const del_admin = (service, q) => fetch_json('DELETE', admin_url(service), q)
 
 export const addCollection = (db, collection) => put_admin('db', { db, collection })
 export const addLink = (parent, child) => put_admin('createLink', { parent, child })
+export const delLink = (parent, child) => del_admin('createLink', { parent, child })
 export const addNewTag = (parent, child) => put_admin('addNode', { parent, child })
 
 export const getSchema = node => fetch_json('POST', admin_url('schema'), { node })
+
 export const addAdmin = (node, admin) => put_admin('admin', { node, admin })
+export const delAdmin = (node, admin) => del_admin('admin', { node, admin })
+
 export const deleteNode = node => del_admin('node', { node })
 export const updateSchema = (node, schema) => put_admin('schema', { node, schema })
 export const setRestriction = (db, collection, node, permission, restriction) =>

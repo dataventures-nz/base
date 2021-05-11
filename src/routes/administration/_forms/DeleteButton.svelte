@@ -11,12 +11,14 @@
     !node.children || node.children.every(child => nodes.filter(n => n.id == child)[0].parents.length > 1)
   $: canItHappen = admins_all_parents && children_will_not_be_orphened
 
-  $: if (!admins_all_parents) {
-    reason = "you can't delete a node when you do NOT admin all of it's parents."
-  } else if (!children_will_not_be_orphened) {
-    reason = "you can't delete a node when you will orphan a child (you monster)."
-  } else {
-    reason = 'you should be good to go'
+  const canDelete = () => {
+    if (!node.parents.every(parent => nodes.map(x => x._id).includes(parent))) {
+      return "you can't delete a node when you do NOT admin all of it's parents."
+    } else if (node?.children?.length) {
+      return "you can't delete a node when it has children."
+    } else {
+      return undefined
+    }
   }
 
   const makeItHappen = async () => {
@@ -28,4 +30,4 @@
   }
 </script>
 
-<button disabled={!canItHappen} title={reason} on:click={makeItHappen}>Delete</button><br />
+<button disabled={!canDelete} title={reason} on:click={makeItHappen}>Delete</button><br />
