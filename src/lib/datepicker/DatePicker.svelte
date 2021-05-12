@@ -5,10 +5,11 @@
   isAllowed={<function returns true if date is allowed>} />
   */
   import Calendar from './Calendar.svelte'
-  import * as d3 from 'd3'
   import * as df from 'date-fns'
 
-  const monthYear = d3.timeFormat('%B %Y')
+  // const monthYear = d3.timeFormat('%B %Y')
+
+  const monthYear = d => df.format(d,"MMMM yyyy")
 
   // props
   export let showDays = true

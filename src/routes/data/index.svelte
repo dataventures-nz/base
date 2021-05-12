@@ -11,13 +11,13 @@
   import CopyBox from '$lib/CopyBox.svelte'
   // import Tabs from '$lib/tabs/Tabs.svelte'
   // import Tab from '$lib/tabs/Tab.svelte'
-  import Clear from '$lib/Clear.svelte'
   import { query, get_api, api_url, listDatabases, listCollections, normalise } from '$lib/api.js'
   import {
     ButtonGroup,
     ButtonGroupItem,
     Row,Col,
     Card,
+    Tabs,Tab,TabContent,
     Avatar,
     AppBar,
     Button,
@@ -204,35 +204,82 @@
       </div>
     </Card>   
   </Col>
+  <Col col={12} md={7}>
+    <Card>
+      <CardText>
+        {#if collection}
+          <Select dense items={collection.timeFields} bind:value={datefield}>Optional: Select time field</Select>
+        {/if}
+        <Datepicker bind:selected={startDate} placeholder="From Date (Inclusive)" />
+        <Datepicker bind:selected={endDate} placeholder="To Date" />
+        </CardText>
+    </Card>
+    <Card>
+      <CardText>You get what you're Given, and you Like It</CardText>
+      <Tabs grow class="green-text">
+        <div slot="tabs">
+          <Tab>Download</Tab>
+          <Tab>Mongo query</Tab>
+          <Tab>CURL</Tab>
+          <Tab>R script</Tab>
+          <Tab>Just your token</Tab>
+        </div>
+        <TabContent>
+          <input type="text" placeholder="filename.csv" bind:value={filename} />
+          <button type="button" class="btn-secondary download" disabled={false} on:click={startDownload}>
+            Download
+          </button>
+        </TabContent> 
+        <TabContent>
+          <CopyBox text={copyoptions[1].copytext(match, table, r)}>
+            <pre>{JSON.stringify(match, undefined, 2)}</pre>
+          </CopyBox>
+        </TabContent> 
+        <TabContent>
+          <CopyBox text={copyoptions[2].copytext(match, table, r)}>
+            <div class="pseudopre">
+              {curlhead}
+              <span class="hoverer">
+                <span class="hoverhide">&lt your token &gt"</span>
+                <span class="hovershow">{tokentext}"</span>
+              </span>
+              -d '{JSON.stringify(match)}' {api_url(service)}
+            </div>
+          </CopyBox>
+        </TabContent>
+        <TabContent>
+          <CopyBox text={copyoptions[3].copytext(match, table, r)}>
+          <pre id="R" bind:this={r}>
+library(tidyverse)
+library(httr)
+
+mydataframe &lt;- POST(
+url = "{api_url(service)}",
+add_headers(
+Accept= "text/csv",
+Authorization = "Bearer {tokentext}"
+),  
+body = '{JSON.stringify(match)}',
+content_type_json()
+) %&gt;%
+content(as = "text") %&gt;%
+read.csv(text=.)
+  </pre> 
+          </CopyBox>
+        </TabContent>
+        <TabContent>
+          <CopyBox text={copyoptions[3].copytext(match, table, r)}>
+            <div class="pseudopre">{tokentext}</div>
+          </CopyBox>
+        </TabContent> 
+      </Tabs>
+
+    </Card>
+  </Col>
 </Row>
 <section class="container select-wrapper">
   <div class="row">
     <div class="col-md-7">
-      <div class="box">
-        <div class="row select-wrapper">
-          <div class="col-md-12">
-            <p>Optional: Filter by date/time field</p>
-            <div>
-              <select name="Choosedatefield" bind:value={datefield} class="input">
-                <option selected class="header" value="">No Date filter</option>
-                {#if collection}
-                  {#each collection.timeFields as field}
-                    <option class="option" value={field}> {field} </option>
-                  {/each}
-                {/if}
-              </select>
-            </div>
-          </div>
-        </div>
-        <div class="columns select-wrapper">
-          <div class="column">
-            <Datepicker bind:selected={startDate} placeholder="From Date (Inclusive)" />
-          </div>
-          <div class="column">
-            <Datepicker bind:selected={endDate} placeholder="To Date" />
-          </div>
-        </div>
-      </div>
       <div class="box">
         <div class="columns select-input-wrapper">
           <div class="column" style="padding-top:0px">
@@ -293,9 +340,6 @@
 </section>
 
 <style type="text/scss">
-  button {
-    width: 100%;
-  }
 
   input {
     cursor: pointer;
