@@ -9,14 +9,29 @@
   import { mappable_fields, time_fields } from '$lib/_utils/schemautils.js'
   import Datepicker from '$lib/datepicker/DatePicker.svelte'
   import CopyBox from '$lib/CopyBox.svelte'
-  import Tabs from '$lib/tabs/Tabs.svelte'
-  import Tab from '$lib/tabs/Tab.svelte'
+  // import Tabs from '$lib/tabs/Tabs.svelte'
+  // import Tab from '$lib/tabs/Tab.svelte'
   import Clear from '$lib/Clear.svelte'
   import { query, get_api, api_url, listDatabases, listCollections, normalise } from '$lib/api.js'
+  import {
+    ButtonGroup,
+    ButtonGroupItem,
+    Row,Col,
+    Card,
+    Avatar,
+    AppBar,
+    Button,
+    Icon,
+    Menu,
+    ListItem,
+    MaterialApp,
+    CardText,
+    Select
+  } from 'svelte-materialify'
 
   let datefields = []
   let datefield
-  let collection //={mappableFields:[],db:""}
+  let collection = undefined
   let startDate
   let endDate
   let dateformat = '#YYYY-MM-DD 00:00:00#'
@@ -46,10 +61,14 @@
     console.log(collections)
     let value = collections.map(d => {
       return {
-        displayName: displayname(d),
-        mappableFields: mappable_fields(d),
-        timeFields: time_fields(d),
-        currentlayer: 0
+        name: displayname(d),
+        value2:displayname(d),
+        value: {
+          displayName: displayname(d),
+          mappableFields: mappable_fields(d),
+          timeFields: time_fields(d),
+          currentlayer: 0
+        }
       }
     })
     return value
@@ -139,10 +158,10 @@
   }
 
   let service
-  $: if (collection && collection.mappableFields.length) {
+  $: if (collection && collection?.mappableFields?.length) {
     collection.mappableFields[collection.currentlayer].selection = selection
   }
-  $: if (collection && collection.mappableFields.length) {
+  $: if (collection && collection?.mappableFields?.length) {
     dbfield = collection.mappableFields[collection.currentlayer].db.field
   } else {
     dbfield = null
@@ -152,48 +171,42 @@
   }
   $: match = make_match(selection, dbfield, datefield, startDate, endDate)
   $: copytext = option.copytext(match, table, r)
+  let dropdownCollection // hack because Materialised Select is a little broken
+  $: collection = Array.isArray(dropdownCollection)?undefined:dropdownCollection
 </script>
-
+<Row>
+  <Col col={12} md={5}>
+    <Card>
+      <CardText>
+      {#await get_allowed_db() then dbs}
+        <Select dense items={dbs} bind:value={dropdownCollection}>First choose a collection to query</Select>
+      {/await}
+      </CardText>
+    </Card>
+    <Card>
+      <CardText> <p>Optional: Select specific areas</p> </CardText>
+      <ButtonGroup>
+          {#if collection}
+            {#each collection.mappableFields as layer, i}
+            <ButtonGroupItem on:click={() => tabclick(i)}>{layer.map.name}</ButtonGroupItem>
+            {/each}
+          {/if}      
+      </ButtonGroup>
+      <QueryMap
+      height="650"
+      selectMode={xor_only}
+      layerlist={collection ? collection.mappableFields : []}
+      bind:selection
+      bind:currentlayer
+    />
+      <div>
+        <Button class="red white-text" on:click={clearmapselection}>Clear Selection</Button>
+      </div>
+    </Card>   
+  </Col>
+</Row>
 <section class="container select-wrapper">
   <div class="row">
-    <div class="col-md-5">
-      <div class="box">
-        <p>First choose a collection to query</p>
-        <div class="select control is-fullwidth">
-          {#await get_allowed_db() then dbs}
-            <!-- svelte-ignore a11y-no-onchange -->
-            <select name="Choosecollection" bind:value={collection} on:change={collectionchanged} class="input">
-              <option selected disabled class="header" value="">Choose a Collection </option>
-              {#each dbs as db}
-                <option class="option" value={db}> {db.displayName} </option>
-              {/each}
-            </select>
-          {/await}
-        </div>
-      </div>
-      <div class="box">
-        <Clear clearfn={clearmapselection} />
-        <p>Optional: Select specific areas</p>
-        <div style="margin-bottom:0;height:42px">
-          <Tabs>
-            {#if collection}
-              {#each collection.mappableFields as layer, i}
-                <Tab label={layer.map.name} index={i} onClick={() => tabclick(i)} />
-              {/each}
-            {/if}
-          </Tabs>
-        </div>
-        <div>
-          <QueryMap
-            height="650"
-            selectMode={xor_only}
-            layerlist={collection ? collection.mappableFields : []}
-            bind:selection
-            bind:currentlayer
-          />
-        </div>
-      </div>
-    </div>
     <div class="col-md-7">
       <div class="box">
         <div class="row select-wrapper">
@@ -224,11 +237,11 @@
         <div class="columns select-input-wrapper">
           <div class="column" style="padding-top:0px">
             <div style="margin-bottom:0;height:42px">
-              <Tabs>
+              <!-- <Tabs>
                 {#each copyoptions as { label, fn }, i}
                   <Tab {label} index={i} onClick={() => (option = copyoptions[i])} />
                 {/each}
-              </Tabs>
+              </Tabs> -->
             </div>
             <CopyBox text={copytext}>
               {#if option.label == 'download'}
