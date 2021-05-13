@@ -57,7 +57,7 @@
   .cell {
     display: inline-block;
     text-align: center;
-    padding: 10px;
+    padding: 4px;
     margin: 1px;
   }
   .container {

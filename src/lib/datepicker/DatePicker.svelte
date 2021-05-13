@@ -6,12 +6,14 @@
   */
   import Calendar from './Calendar.svelte'
   import * as df from 'date-fns'
+  import { TextField } from 'svelte-materialify'
+import { tick } from 'svelte';
 
-  // const monthYear = d3.timeFormat('%B %Y')
 
   const monthYear = d => df.format(d,"MMMM yyyy")
 
   // props
+  export let placeholder = "placeholder"
   export let showDays = true
   export let isAllowed = () => true
   export let selected = new Date()
@@ -19,29 +21,29 @@
   // state
   let showDatePicker
   // handlers
-  const onFocus = () => {
+  const onFocus = async () => {
     showDatePicker = true
+    await tick()
+    datepicker.focus()
   }
 
   let datepicker
 
   const next = () => (selected = df.addMonths(selected, 1))
   const prev = () => (selected = df.addMonths(selected, -1))
-  $: if (datepicker && showDatePicker) {
-    datepicker.focus()
-  }
+
 </script>
 
 <div class="relative">
-  <input type="text" on:focus={onFocus} value={format ? df.format(selected, format) : selected.toDateString()} />
+  <TextField class="ma-1" outlined dense on:focus={onFocus} value={format ? df.format(selected, format) : selected.toDateString()}>{placeholder}</TextField>
   <div class="box" tabindex="-1" style={"display:"+ (showDatePicker? "inline-block":"none")} bind:this={datepicker} on:blur={() => (showDatePicker = false)}>
     <div class="month-name">
       <div class="center">
-        <div on:click={prev}>Prev</div>
+        <div id = prev on:click={prev}>Prev</div>
       </div>
       <div id="monthtext" class="center">{monthYear(selected)}</div>
       <div class="center">
-        <div on:click={next}>Next</div>
+        <div id = next on:click={next}>Next</div>
       </div>
     </div>
     {#if showDays}
@@ -54,7 +56,12 @@
   .relative {
     position: relative;
   }
-
+  #prev{
+    padding-left:10px;
+  }
+  #next{
+    padding-right:10px;
+  }
   .box {
     position: absolute;
     top: 40px;
