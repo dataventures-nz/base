@@ -14,6 +14,7 @@
 
   let map
 
+
   const fill = {
     paint: {
       'fill-color': ['coalesce', ['feature-state', 'color'], '#627BC1'],
@@ -27,34 +28,30 @@
       ]
     }
   }
+
   const lines = {
     paint: {
-      'line-color': [
-        'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        ['coalesce', ['feature-state', 'color'], '#627BC1'],
-        ['boolean', ['feature-state', 'selected'], false],
-        ['coalesce', ['feature-state', 'color'], '#627BC1'],
-        '#627BC1'
-      ],
-      'line-width': [
-        'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        1,
-        ['boolean', ['feature-state', 'selected'], false],
-        1,
-        0.5
-      ],
-      'line-opacity': [
-        'case',
-        ['boolean', ['feature-state', 'hover'], false],
-        1,
-        ['boolean', ['feature-state', 'selected'], false],
-        1,
-        0.5
-      ]
+      'line-color': {
+        'stops':[
+          [10,'#627BC1'],
+          [18,'#FF0000']
+        ]
+      },
+      'line-opacity':{
+        'stops': [
+          [3.5, 0.4],
+          [20, 0.8]
+        ]
+      },
+      'line-width':{
+        'stops': [
+          [3.5, 0.4],
+          [20, 1]
+        ]
+      }
     }
   }
+
 
   function accessor_for(map) {
     let p = map.properties
@@ -80,12 +77,12 @@
     layerlist[currentlayer] && (layerlist[currentlayer].ui.visible = true)
   }
 
-  $: console.log(selection)
-</script>
+  $: console.log(map)
 
+</script>
 <div style="height:{height}px">
   <Map
-    bind:map
+    bind:mapStore={map}
     lat={-41.5}
     lon={172}
     zoom={4.5}

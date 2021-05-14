@@ -8,14 +8,15 @@
   import CopyBox from '$lib/CopyBox.svelte'
   import { api_url, listDatabases, normalise } from '$lib/api.js'
   import {
-    ButtonGroup,
-    Button,
-    ButtonGroupItem,
     Row,Col,
     Card,CardText,CardActions,
+    ButtonGroup, ButtonGroupItem, Button,
     Tabs,Tab,TabContent,
+    Icon,
     Select,TextField
   } from 'svelte-materialify'
+
+  import { mdiClose, mdiDownload } from '@mdi/js'
 
   let datefield
   let collection = undefined
@@ -112,13 +113,6 @@
     selection = collection.mappableFields[i].selection ? collection.mappableFields[i].selection : []
   }
 
-  // const collectionchanged = function (a, b) {
-  //   currentlayer = collection.currentlayer
-  //   selection = collection?.mappableFields[collection.currentlayer]?.selection
-  //     ? collection.mappableFields[collection.currentlayer].selection
-  //     : []
-  // }
-
   const clearmapselection = function () {
     console.log(collection)
     collection.mappableFields[collection.currentlayer].map.selection = []
@@ -135,6 +129,7 @@
   }
 
   let service
+
   $: if (collection && collection?.mappableFields?.length) {
     collection.mappableFields[collection.currentlayer].selection = selection
   }
@@ -155,8 +150,8 @@
   }
 
   $: if(collection && !collection?.timeFields.includes(datefield)){datefield = ""}
-  $: if(collection) {console.log(collection)}
-
+  
+  $: noSelection = !(selection.length)
 
 </script>
 
@@ -175,7 +170,7 @@
       <CardText> <p>Optional: Select specific areas</p> 
       <CardActions>
         <div class = buttons>
-          <ButtonGroup>
+          <ButtonGroup value = {0}>
               {#if collection}
                 {#each collection.mappableFields as layer, i}
                 <ButtonGroupItem on:click={() => tabclick(i)}>{layer.map.name}</ButtonGroupItem>
@@ -183,7 +178,14 @@
               {/if} 
                 
           </ButtonGroup>
-          <Button class="red white-text right" on:click={clearmapselection}>Clear Selection</Button>
+          <Button 
+            fab 
+            size="small" 
+            class={noSelection ?"grey white-text":"red white-text"}
+            disabled = {noSelection}  
+            on:click={clearmapselection}>
+            <Icon path={ mdiClose } />
+          </Button>
       </div>  
       </CardActions>  
       <QueryMap
@@ -205,7 +207,10 @@
         {#if datefield && datefield.length}
           <Datepicker bind:selected={startDate} placeholder="From Date (Inclusive)" />
           <Datepicker bind:selected={endDate} placeholder="To Date" />
-          <Button class="red white-text right" on:click={cleardateselection}>Clear Selection</Button>
+          <!-- <Button class="red white-text right" on:click={cleardateselection}>Clear Selection</Button> -->
+          <Button fab size="small" class="red white-text" on:click={cleardateselection}>
+            <Icon path={ mdiClose } />
+          </Button>
         {/if} 
       </CardActions> 
     </Card>
@@ -224,7 +229,10 @@
           <TabContent class="ma-1">
             <CardActions>
               <TextField class="ma-1" outlined dense bind:value={filename}>Save as</TextField>
-              <Button class="ma-1" on:click={startDownload}>Download</Button>
+              <!-- <Button class="ma-1" on:click={startDownload}>Download</Button> -->
+              <Button fab size="small" on:click={startDownload}>
+                <Icon path={ mdiDownload } />
+              </Button>
             </CardActions>
           </TabContent> 
           <TabContent>
