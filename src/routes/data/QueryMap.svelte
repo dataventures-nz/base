@@ -34,7 +34,7 @@
       'line-color': {
         'stops':[
           [10,'#627BC1'],
-          [18,'#FF0000']
+          [15,'#F65A00']
         ]
       },
       'line-opacity':{
