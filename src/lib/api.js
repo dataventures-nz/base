@@ -13,7 +13,6 @@ const get_headers = async () => ({
 
 const onServer = typeof window == 'undefined'
 const nothing = Promise.resolve([])
-
 export const db_url = (dbName, collectionName) => `${serviceUrl}/api/${dbName}/${collectionName}`
 export const fetch_csv = async (method, url, body) =>
   onServer
@@ -35,6 +34,8 @@ export const fetch_json = async (method, url, body) =>
 export const api_url = service => `${serviceUrl}/api/${service}`
 export const admin_url = service => `${serviceUrl}/admin/${service}`
 export const query = (dbName, collectionName, q) => fetch_csv('POST', db_url(dbName, collectionName), q)
+
+export const mePromise = fetch_json('GET', admin_url('/whoAmI')) // returns the promise of the database version of the user
 
 export const queryRunnerFor = url => q => fetch_csv('POST', url, q)
 export const queryRunnerFor2 = url => q => fetch_json('POST', url, q)

@@ -1,5 +1,5 @@
 <script>
-  import { admin_url, fetch_json, setRestriction, delAdmin, deleteNode, delLink } from '$lib/api.js'
+  import { admin_url, fetch_json, setRestriction, delAdmin, deleteNode, delLink, mePromise} from '$lib/api.js'
   import AddCollectionForm from './_forms/AddCollectionForm.svelte'
   import AddMaterialisedViewForm from './_forms/AddMaterialisedViewForm.svelte'
   import AddTagForm from './_forms/AddTagForm.svelte'
@@ -62,10 +62,6 @@
     getData()
     node = nodes.filter(n => (n.id = node.id))[0]
   }
-
-  let me = undefined
-  const getMe = () => fetch_json('GET', admin_url('/whoAmI')).then(x => (me = x))
-  getMe()
 
   let all_permissions = []
   const getAllPermissionsFor = n =>
@@ -132,11 +128,13 @@
         Collections
         <NodeList items={filtered_collections} on:selectItem={setNode} />
       </CardText>
+      {#await mePromise then me}
       {#if me?.canAddCollectionTo}
         <CardActions>
           <Button style="width:100%" on:click={() => (showAddCollection = true)}>Add New Collection</Button>
         </CardActions>
       {/if}
+      {/await}
       <CardText>
         Tags
         <NodeList items={filtered_tags} on:selectItem={setNode} />
@@ -211,10 +209,10 @@
   </Col>
 </Row>
 
-<AddCollectionForm bind:active={showAddCollection} admin={me} close={update}/>
+<AddCollectionForm bind:active={showAddCollection} close={update}/>
 <AddTagForm bind:active={showAddTag} {nodes} close={update} parent={node_id} />
 
-{#if showAddMaterialisedView}
+<!-- {#if showAddMaterialisedView}
   <Modal
     on:close={() => {
       showAddMaterialisedView = false
@@ -222,8 +220,8 @@
     }}
     let:close
   >
-    <AddMaterialisedViewForm admin={me} {close} />
+    <AddMaterialisedViewForm {close} />
   </Modal>
-{/if}
+{/if} -->
 
 <AddAdminForm bind:active={showAddAdmin} {nodes} close={update} parent={node_id} />
