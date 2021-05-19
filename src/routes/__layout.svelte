@@ -5,5 +5,13 @@
 
 <MaterialApp>
   <Banner />
-  <slot />
+  <div>
+    <slot />
+  </div>
 </MaterialApp>
+
+<style>
+  :global(.s-btn) {
+    /* --theme-app-bar: plum; */
+  }
+</style>

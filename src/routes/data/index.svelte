@@ -181,7 +181,7 @@
           <Button 
             fab 
             size="small" 
-            class={noSelection ?"grey white-text":"deep-orange lighten-1 white-text"}
+           
             disabled = {noSelection}  
             on:click={clearmapselection}>
             <Icon path={ mdiClose } />
@@ -208,7 +208,7 @@
           <Datepicker bind:selected={startDate} placeholder="From Date (Inclusive)" />
           <Datepicker bind:selected={endDate} placeholder="To Date" />
           <!-- <Button class="red white-text right" on:click={cleardateselection}>Clear Selection</Button> -->
-          <Button fab size="small" class="deep-orange lighten-1 white-text" on:click={cleardateselection}>
+          <Button fab size="small"  on:click={cleardateselection}>
             <Icon path={ mdiClose } />
           </Button>
         {/if} 

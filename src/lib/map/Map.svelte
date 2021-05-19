@@ -12,6 +12,7 @@
   export let minZoom
   export let style
   export let map = undefined
+  export let logZoom = false
   let container
   let maploaded
   export let mapStore
@@ -36,6 +37,12 @@
     map.on('load', () => {
       maploaded = true
     })
+
+    if(logZoom){ 
+    map.on('zoom', () => {
+      console.log(map.getZoom())
+    })}
+
     dispatch('mapready', { map })
     return () => {
       mapStore.removeAll()

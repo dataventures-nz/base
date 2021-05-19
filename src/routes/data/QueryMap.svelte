@@ -40,13 +40,14 @@
       'line-opacity':{
         'stops': [
           [3.5, 0.4],
-          [20, 0.8]
+          [20, 1]
         ]
       },
       'line-width':{
         'stops': [
           [3.5, 0.4],
-          [20, 1]
+          [10,0.5],
+          [20, 4]
         ]
       }
     }
@@ -88,6 +89,7 @@
     zoom={4.5}
     minZoom={3.5}
     style="mapbox://styles/dataventures/cjzaospfz0i1l1cn3kcuof5ix"
+    logZoom = {false}
   >
     {#each layerlist as layer (layer.map.name)}
       <MapSource name={layer.map.name} type="vector" url={layer.map.url}>
