@@ -181,7 +181,6 @@
           <Button 
             fab 
             size="small" 
-           
             disabled = {noSelection}  
             on:click={clearmapselection}>
             <Icon path={ mdiClose } />

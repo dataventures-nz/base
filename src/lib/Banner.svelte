@@ -20,6 +20,7 @@
       {/if}
     {/await}
     <ButtonGroupItem on:click={() => goto('/data')}>Data</ButtonGroupItem>
+    <ButtonGroupItem on:click={() => goto('/login')}>login</ButtonGroupItem>
   </ButtonGroup>
   <div style="flex-grow:1"/>
 
