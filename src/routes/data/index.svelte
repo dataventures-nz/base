@@ -157,7 +157,7 @@
 
 
 <Row>
-  <Col col={12} md={5}>
+  <Col cols={12} md={5}>
     <Card class="ma-2">
       <CardText>
       {#await get_allowed_db() then dbs}
@@ -188,7 +188,7 @@
       </div>  
       </CardActions>  
       <QueryMap
-      height="620"
+      height={620}
       selectMode={xor_only}
       layerlist={collection ? collection.mappableFields : []}
       bind:selection
@@ -198,7 +198,7 @@
     </Card> 
     {/if}  
   </Col>
-  <Col col={12} md={7}>
+  <Col cols={12} md={7}>
     {#if collection && collection.timeFields.length}
     <Card class="ma-2"> 
       <CardActions>
@@ -289,6 +289,7 @@ read.csv(text=.)
   background-color: #F65A00 !important;
   border-color: #F65A00 !important;
   }
+
   .buttons{
     width:100%;
     display: flex;
