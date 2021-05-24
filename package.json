@@ -13,13 +13,13 @@
     "svelte-materialify": "^0.3.10"
   },
   "devDependencies": {
-    "auth0-js": "^9.16.0",
     "@auth0/auth0-spa-js": "^1.15.0",
     "@mdi/js": "^5.9.55",
     "@sveltejs/adapter-node": "next",
     "@sveltejs/kit": "next",
     "@typescript-eslint/eslint-plugin": "^4.23.0",
     "@typescript-eslint/parser": "^4.23.0",
+    "auth0-js": "^9.16.0",
     "bson": "^4.3.0",
     "d3": "^6.7.0",
     "d3-dsv": "^2.0.0",
