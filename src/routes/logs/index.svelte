@@ -3,11 +3,13 @@
     Row,Col,
     Card,CardText,CardActions,CardTitle,
     ListItem,
-    Select,
+    Select,TextField,Icon,
     Table
     } from 'svelte-materialify';
+    import { mdiMagnify } from '@mdi/js'
     import { browser } from '$app/env';
-    import { listDatabases, listCollections, query } from '$lib/api.js'
+    import { listDatabases, query, admin_url, fetch_json } from '$lib/api.js'
+    import Datepicker from '$lib/datepicker/DatePicker.svelte'
 
   const columns=[
     "_id",
@@ -18,8 +20,11 @@
     "user_id",
     "time"
   ]
-
- 
+  let filter
+  let timefilter
+  $: console.log(timefilter)
+  let log
+  let clicked = null
 
   async function collections(){
     const list = await listDatabases()
@@ -28,24 +33,43 @@
     return {dbs,collections:cols}
   } 
 
+  const sortByName = (a, b) => a._id.localeCompare(b._id)
 
-  let log
-  let clicked = null
+  let nameList = []
+
+  const getData = () =>
+    fetch_json('GET', admin_url(''))
+      .then(x=>x.filter(d=>d._id.includes('@')))
+      .then(x =>
+        x.sort(sortByName).map(x => {
+          x.id = x._id
+          return x
+        })
+      )
+      .then(x => (nameList = x))
+  getData()
+
+  
+  $: filteredNameList = nameList.filter(d=>d._id.includes(filter))
+  $: console.log({nameList,filteredNameList})
+
 
   function activateRow(thislog,i){
     log = thislog
     clicked = i
   }
-
-   
+  
   let dblist
   let collectionlist,status
   $: console.log(dblist)
 
   // let q =[{ $sort: { 'time': -1 } }, { $limit: 10 }] 
 
-  function filteredQuery(dblist,collectionlist,status){  
+  function filteredQuery(dblist,collectionlist,status,filteredNameList){  
     let filter = {}
+    if(filteredNameList && filteredNameList.length){
+      filter.user_id = {"$in": filteredNameList.map(d=>d._id)}}
+
     if(dblist && dblist.length){
       filter.db = {"$in": dblist}}
     if(collectionlist && collectionlist.length){
@@ -63,8 +87,9 @@
     return q
   }
 
-  $:data = query('log', 'query_log',filteredQuery(dblist,collectionlist,status))
+  $:data = query('log', 'query_log',filteredQuery(dblist,collectionlist,status,filteredNameList))
   let lists = collections()
+  
 
 </script>
 <Row>
@@ -98,27 +123,41 @@
                   status
               </Select>
               </th>
-              <th>user_id</th>
-              <th>time</th>
+              <th>
+                <TextField class="ma-1" dense clearable bind:value={filter}>
+                  <div slot="prepend">
+                    <Icon path={mdiMagnify} />
+                  </div>
+                  user_id
+                </TextField>
+              </th>
+              <th><Datepicker dense bind:selected={timefilter} placeholder="From time" /></th>
 
 
             {/await}
           </tr>
         </thead>
-        {#await data}
+        <!-- {#await data}
         wait for it....
-        {:then logs}   
+        {:then logs}    -->
         <tbody>
-          {#each logs as log,i}
-            <tr class={i==clicked?"active":""} on:click={()=>activateRow(log,i)}>
+          {#each new Array(10).fill(0) as j,i}
+          {#await data}
+          <tr >
+            {#each columns as column}
+              <td><div> </div></td>
+            {/each}
+          </tr>
+          {:then logs} 
+            <tr class={i==clicked?"active":""} on:click={logs[i]?()=>activateRow(logs[i],i):()=>{}}>
               {#each columns as column}
-                <td><div>{log[column]}</div></td>
+                <td><div>{logs[i]?logs[i][column]:''}</div></td>
               {/each}
             </tr>
+            {/await}
             {/each}
-          
         </tbody>
-        {/await}
+        <!-- {/await} -->
       <!-- </table> -->
       </Table>
       {/if}
@@ -133,41 +172,44 @@
     <Card>
       {#if log}
     <CardTitle>Log ID: {log._id} </CardTitle>
-
-    <CardText>
-      
-        <ListItem> time: {log.time}</ListItem>
-        <ListItem> db: {log.db}</ListItem>
-        <ListItem> collection: {log.collection}</ListItem>
-        <ListItem> status: {log.status}</ListItem>
-        <ListItem> user: {log.user_id}</ListItem>
-      
-    </CardText>
+    
+      <CardText>
+        <div class = "querybox">
+          <ListItem> time: {log.time}</ListItem>
+          <ListItem> db: {log.db}</ListItem>
+          <ListItem> collection: {log.collection}</ListItem>
+          <ListItem> status: {log.status}</ListItem>
+          <ListItem> user: {log.user_id}</ListItem>
+        </div>
+      </CardText>
     {/if}
+    </Card>
+  </Col>
+  <Col cols={12} md={4}> 
+    <Card>
+      <CardTitle>Requested</CardTitle>
+      <CardText>
+        <div class = "querybox">
+          <pre>
+            {JSON.stringify(JSON.parse(log.requested),null,2)}
+          </pre>
+        </div>
+      </CardText>
     </Card>
   </Col>
   <Col cols={12} md={4}> 
       <Card>
         <CardTitle>Query</CardTitle>
         <CardText>
-
+          <div class = "querybox">
             <pre>
               {JSON.stringify(JSON.parse(log.query),null,2)}
             </pre>
-
+          </div>
         </CardText>
       </Card>
     </Col>
-    <Col cols={12} md={4}> 
-      <Card>
-        <CardTitle>Requested</CardTitle>
-        <CardText>
-            <pre>
-              {JSON.stringify(JSON.parse(log.requested),null,2)}
-            </pre>
-        </CardText>
-      </Card>
-     </Col>
+    
   </Row>
   {/if} 
 
@@ -190,5 +232,10 @@
   }
   .active{
     background: var(--theme-tables-hover);
+  }
+
+  .querybox{
+    height:300px;
+    overflow:auto;
   }
 </style>

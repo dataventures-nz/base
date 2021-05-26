@@ -18,6 +18,9 @@ import { tick } from 'svelte';
   export let isAllowed = () => true
   export let selected = new Date()
   export let format // a date-fns format string eg "d MMMM yyyy"
+  export let outlined = false
+  export let dense = false
+  export let solo =false
   // state
   let showDatePicker
   // handlers
@@ -35,7 +38,7 @@ import { tick } from 'svelte';
 </script>
 
 <div class="relative">
-  <TextField class="ma-1" outlined dense on:focus={onFocus} value={format ? df.format(selected, format) : selected.toDateString()}>{placeholder}</TextField>
+  <TextField class="ma-1" {outlined} {dense} {solo} on:focus={onFocus} value={format ? df.format(selected, format) : selected.toDateString()}>{placeholder}</TextField>
   <div class="box" tabindex="-1" style={"display:"+ (showDatePicker? "inline-block":"none")} bind:this={datepicker} on:blur={() => (showDatePicker = false)}>
     <div class="month-name">
       <div class="center">

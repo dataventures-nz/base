@@ -204,8 +204,8 @@
       <CardActions>
         <Select outlined dense items={collection.timeFields} bind:value={datefield}>Optional: Select time field</Select>
         {#if datefield && datefield.length}
-          <Datepicker bind:selected={startDate} placeholder="From Date (Inclusive)" />
-          <Datepicker bind:selected={endDate} placeholder="To Date" />
+          <Datepicker outlined dense bind:selected={startDate} placeholder="From Date (Inclusive)" />
+          <Datepicker outlined dense bind:selected={endDate} placeholder="To Date" />
           <!-- <Button class="red white-text right" on:click={cleardateselection}>Clear Selection</Button> -->
           <Button fab size="small"  on:click={cleardateselection}>
             <Icon path={ mdiClose } />
