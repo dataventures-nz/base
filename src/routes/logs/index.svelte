@@ -10,19 +10,19 @@
     import { browser } from '$app/env';
     import { listDatabases, query, admin_url, fetch_json } from '$lib/api.js'
     import Datepicker from '$lib/datepicker/DatePicker.svelte'
+    import * as df from 'date-fns'
 
   const columns=[
     "_id",
     "db",
     "collection",
-    // "requested",
-    "status",
     "user_id",
-    "time"
+    "time",
+    "status"
   ]
-  let filter
+  let namefilter
   let timefilter
-  $: console.log(timefilter)
+  $: console.log({namefilter})
   let log
   let clicked = null
 
@@ -48,9 +48,8 @@
       )
       .then(x => (nameList = x))
   getData()
-
   
-  $: filteredNameList = nameList.filter(d=>d._id.includes(filter))
+  $: filteredNameList = nameList.filter(d=>d._id.includes(namefilter))
   $: console.log({nameList,filteredNameList})
 
 
@@ -61,12 +60,17 @@
   
   let dblist
   let collectionlist,status
-  $: console.log(dblist)
 
-  // let q =[{ $sort: { 'time': -1 } }, { $limit: 10 }] 
-
-  function filteredQuery(dblist,collectionlist,status,filteredNameList){  
+  function filteredQuery(dblist,collectionlist,status,filteredNameList,timefilter){  
     let filter = {}
+
+    console.log({2:timefilter})
+
+    if(timefilter){
+      console.log("ping")
+      filter.time = { "$lte": df.endOfDay(timefilter) }
+    }
+     
     if(filteredNameList && filteredNameList.length){
       filter.user_id = {"$in": filteredNameList.map(d=>d._id)}}
 
@@ -87,7 +91,7 @@
     return q
   }
 
-  $:data = query('log', 'query_log',filteredQuery(dblist,collectionlist,status,filteredNameList))
+  $:data = query('log', 'query_log',filteredQuery(dblist,collectionlist,status,filteredNameList,timefilter))
   let lists = collections()
   
 
@@ -98,7 +102,6 @@
       <CardText>
       {#if browser}
       <Table outlined>
-        <!-- <table> -->
         <thead>
           <tr>
             {#await lists}
@@ -117,29 +120,26 @@
                   collection
                 </Select>
               </th>
-              <!-- <th>requested</th> -->
               <th>
-                <Select dense items={["will run","won't run"]} bind:value={status}>
-                  status
-              </Select>
-              </th>
-              <th>
-                <TextField class="ma-1" dense clearable bind:value={filter}>
+                <TextField class="ma-1" dense clearable bind:value={namefilter}>
                   <div slot="prepend">
                     <Icon path={mdiMagnify} />
                   </div>
                   user_id
                 </TextField>
               </th>
-              <th><Datepicker dense bind:selected={timefilter} placeholder="From time" /></th>
-
-
+              <th><Datepicker dense 
+                bind:selected={timefilter}
+                isAllowed = {(date)=>date<new Date()} 
+                placeholder="From time" /></th>
+              <th>
+                <Select dense items={["will run","won't run"]} bind:value={status}>
+                  status
+              </Select>
+              </th>
             {/await}
           </tr>
         </thead>
-        <!-- {#await data}
-        wait for it....
-        {:then logs}    -->
         <tbody>
           {#each new Array(10).fill(0) as j,i}
           {#await data}
@@ -157,8 +157,6 @@
             {/await}
             {/each}
         </tbody>
-        <!-- {/await} -->
-      <!-- </table> -->
       </Table>
       {/if}
     </CardText>
@@ -221,7 +219,7 @@
   }
 
   td{
-    height:25px;
+    height:29px;
     width: 15%;
     div{
       white-space: nowrap;
@@ -231,7 +229,7 @@
     }
   }
   .active{
-    background: var(--theme-tables-hover);
+    // background: var(--theme-tables-hover);
   }
 
   .querybox{

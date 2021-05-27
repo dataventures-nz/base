@@ -33,7 +33,7 @@
     {/each}
   </div>
 
-  <div class="row">
+  <div class="row" style="padding-bottom:10px">
     {#each dayarray as day}
       <div
         on:click={() => {
@@ -53,11 +53,12 @@
   </div>
 </div>
 
-<style>
+<style type="text/scss">
   .cell {
     display: inline-block;
     text-align: center;
-    padding: 4px;
+    border: 2px solid white;
+    padding: 2px;
     margin: 1px;
   }
   .container {
@@ -71,7 +72,8 @@
     grid-template-columns: 14% 14% 14% 14% 14% 14% 14%;
   }
   .selected {
-    background: #84e791;
+    background: var(--theme-tables-active);
+    border: 2px solid var(--theme-tables-hover);
   }
   .highlight {
     transition: transform 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -80,15 +82,14 @@
     color: thistle;
   }
   .highlight:hover {
-    background: rgb(238, 176, 60);
-    color: #fff;
+    background: var(--theme-tables-hover);
+    border: 2px solid var(--theme-tables-hover);
     cursor: pointer;
-    transform: scale(1.3);
   }
 
-  .selected.highlight:hover {
-    background: yellowgreen;
-  }
+  // .selected.highlight:hover {
+  //   background: yellowgreen;
+  // }
 
   .disabled {
     background: #bbb;
