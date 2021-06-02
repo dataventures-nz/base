@@ -35,7 +35,7 @@
   }
 
   function focusChange(t,c){
-    setTimeout( ()=> showDatePicker = timefocus || calfocus, 300)
+    // setTimeout( ()=> showDatePicker = timefocus || calfocus, 300)
   }
 
   let datepicker

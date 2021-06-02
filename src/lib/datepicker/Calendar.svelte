@@ -60,6 +60,7 @@
     border: 2px solid white;
     padding: 2px;
     margin: 1px;
+    border-radius:2px;
   }
   .container {
     display: flex;
@@ -73,7 +74,7 @@
   }
   .selected {
     background: var(--theme-tables-active);
-    border: 2px solid var(--theme-tables-hover);
+    border: 2px solid #bbb;
   }
   .highlight {
     transition: transform 0.2s cubic-bezier(0.165, 0.84, 0.44, 1);
@@ -83,7 +84,7 @@
   }
   .highlight:hover {
     background: var(--theme-tables-hover);
-    border: 2px solid var(--theme-tables-hover);
+    border: 2px solid #999;
     cursor: pointer;
   }
 
