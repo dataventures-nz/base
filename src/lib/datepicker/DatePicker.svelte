@@ -27,16 +27,33 @@
   // state
   let showDatePicker
   // handlers
+  
   const onFocus = async () => {
     showDatePicker = true
     await tick()
     datepicker.focus()
   }
 
+  function focusChange(t,c){
+    setTimeout( ()=> showDatePicker = timefocus || calfocus, 300)
+  }
+
   let datepicker
 
-  const next = () => (selected = df.addMonths(selected, 1))
-  const prev = () => (selected = df.addMonths(selected, -1))
+  let day = df.startOfDay(selected)
+  let time = df.format(selected,"HH:mm")
+
+  const next = () => (day = df.addMonths(day, 1))
+  const prev = () => (day = df.addMonths(day, -1))
+  
+  $:if(time || day){
+    const t = time.split(':')
+    selected = df.set(day,{hours:+t[0],minutes:+t[1]})
+  }
+  
+  let timefocus = false
+  let calfocus = false
+  $: focusChange(timefocus,calfocus)
 
 </script>
 
@@ -54,21 +71,23 @@
       tabindex="-1" 
       style={"display:"+ (showDatePicker? "inline-block":"none")} 
       bind:this={datepicker} 
-      on:blur={() => (showDatePicker = true)}>
+      on:blur={() => calfocus = false}
+      on:focus={() => calfocus = true}
+      >
         <div class="month-name s-item">
           <div class="center">
             <div id = prev on:click={prev}>Prev</div>
           </div>
-          <div id="monthtext" class="center">{monthYear(selected)}</div>
+          <div id="monthtext" class="center">{monthYear(day)}</div>
           <div class="center">
             <div id = next on:click={next}>Next</div>
           </div>
         </div>
         {#if showDays}
-          <Calendar bind:date={selected} {isAllowed} />
+          <Calendar bind:date={day} {isAllowed} />
         {/if}
         {#if showTime}
-        <TimePicker />
+          <TimePicker bind:time={time} bind:focus={timefocus}/>
         {/if}
       </div>
     </div>

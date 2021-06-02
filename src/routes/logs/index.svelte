@@ -67,7 +67,6 @@
     console.log({2:timefilter})
 
     if(timefilter){
-      console.log("ping")
       filter.time = { "$lte": df.endOfDay(timefilter) }
     }
      
@@ -87,11 +86,11 @@
       q.push({$match:filter})
     }
     q.push({ $sort: { 'time': -1 } },{ $limit: 10 })
-    console.log(JSON.stringify(q,null,2)) 
     return q
   }
 
   $:data = query('log', 'query_log',filteredQuery(dblist,collectionlist,status,filteredNameList,timefilter))
+  
   let lists = collections()
   
 
