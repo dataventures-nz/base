@@ -1,15 +1,9 @@
 <script>
   export let time = "00:00"
-  export let focus = false
-
-  $:console.log(focus)
-  
 </script>
 
 <div id = time_wrapper>
   <input type="time"
-    on:focus={()=>focus=true}
-    on:blur={()=>focus=false}
     bind:value = {time}/>
 </div>
 

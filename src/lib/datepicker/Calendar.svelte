@@ -3,7 +3,7 @@
 
   // props
   export let date
-  export let isAllowed = () => true
+  export let isAllowed = (date) => true
 
   // local vars to help in render
   const weekdays = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa']

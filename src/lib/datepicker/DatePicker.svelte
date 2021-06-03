@@ -9,8 +9,6 @@
   import * as df from 'date-fns'
   import { TextField, Icon } from 'svelte-materialify'
   import { mdiCalendar } from '@mdi/js'
-  import { tick } from 'svelte';
-
 
   const monthYear = d => df.format(d,"MMMM yyyy")
 
@@ -24,21 +22,6 @@
   export let outlined = false
   export let dense = false
   export let solo =false
-  // state
-  let showDatePicker
-  // handlers
-  
-  const onFocus = async () => {
-    showDatePicker = true
-    await tick()
-    datepicker.focus()
-  }
-
-  function focusChange(t,c){
-    setTimeout( ()=> showDatePicker = timefocus || calfocus, 300)
-  }
-
-  let datepicker
 
   let day = df.startOfDay(selected)
   let time = df.format(selected,"HH:mm")
@@ -50,51 +33,46 @@
     const t = time.split(':')
     selected = df.set(day,{hours:+t[0],minutes:+t[1]})
   }
-  
-  let timefocus = false
-  let calfocus = false
-  $: focusChange(timefocus,calfocus)
 
 </script>
 
-<div class="relative">
+<div class="relative" id='top'>
   <TextField class="ma-1" 
-    {outlined} {dense} {solo} 
-    on:focus={onFocus} value={format ? df.format(selected, format) : selected.toDateString()}>
+    {outlined} {dense} {solo} value={format ? df.format(selected, format) : selected.toDateString()}>
     <div slot="prepend">
       <Icon path={mdiCalendar} />
     </div>
     {placeholder}
   </TextField>
   <div class="s-menu" > 
-    <div
-      tabindex="-1" 
-      style={"display:"+ (showDatePicker? "inline-block":"none")} 
-      bind:this={datepicker} 
-      on:blur={() => calfocus = false}
-      on:focus={() => calfocus = true}
-      >
-        <div class="month-name s-item">
-          <div class="center">
-            <div id = prev on:click={prev}>Prev</div>
-          </div>
-          <div id="monthtext" class="center">{monthYear(day)}</div>
-          <div class="center">
-            <div id = next on:click={next}>Next</div>
-          </div>
+    <div class="month-name s-item">
+        <div class="center">
+          <div id = prev on:click={prev}>Prev</div>
         </div>
-        {#if showDays}
-          <Calendar bind:date={day} {isAllowed} />
-        {/if}
-        {#if showTime}
-          <TimePicker bind:time={time} bind:focus={timefocus}/>
-        {/if}
+        <div id="monthtext" class="center">{monthYear(day)}</div>
+        <div class="center">
+          <div id = next on:click={next}>Next</div>
+        </div>
       </div>
+      {#if showDays}
+        <Calendar bind:date={day} {isAllowed} />
+      {/if}
+      {#if showTime}
+        <TimePicker bind:time={time} />
+      {/if}
     </div>
   </div>
 
 
 <style>
+  #top .s-menu{
+    display:none
+  }
+
+  #top:focus-within .s-menu{
+    display:inline-block
+  }
+
   .relative {
     position: relative;
     z-index: 999;
