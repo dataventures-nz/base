@@ -78,7 +78,6 @@
     layerlist[currentlayer] && (layerlist[currentlayer].ui.visible = true)
   }
 
-  $: console.log(map)
 
 </script>
 <div style="height:{height}px">

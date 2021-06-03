@@ -13,12 +13,14 @@
 <AppBar dense flat tile>
   <span slot="title"><img alt="DataVentures logo" src="svg/DV-logo-Horizontal.svg" height="32px"/></span>
   <div style="flex-grow:1"/>
-  <ButtonGroup>
+  <ButtonGroup class="ma-2">
     {#await mePromise then me}
       {#if me.admins?.length}
         <ButtonGroupItem on:click={() => goto('/administration')}>Admin</ButtonGroupItem>
+        <ButtonGroupItem on:click={() => goto('/logs')}>Logs</ButtonGroupItem>
       {/if}
     {/await}
+
     <ButtonGroupItem on:click={() => goto('/data')}>Data</ButtonGroupItem>
     <ButtonGroupItem on:click={() => goto('/login')}>login</ButtonGroupItem>
   </ButtonGroup>
